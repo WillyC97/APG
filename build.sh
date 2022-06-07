@@ -78,6 +78,10 @@ build_project()
          --regenerate-project)
              REGENERATE_PROJECT=yes
              ;;
+        --clean)
+             rm -rf $BUILD_OUTPUT_DIR && print_banner "Project folder deleted"
+             exit 0
+             ;;
          --juce-path)
              shift
              PARAM="$1"
