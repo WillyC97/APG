@@ -41,6 +41,8 @@ juce_add_gui_app(APG
 
 target_sources(APG
     PRIVATE
+        source/AudioPlayer.cpp
+        source/AudioPlayer.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
