@@ -5,6 +5,7 @@
 // have called `juce_generate_juce_header(<thisTarget>)` in your CMakeLists.txt,
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
+#include "AudioPlayer.h"
 
 //==============================================================================
 /*
@@ -24,6 +25,18 @@ public:
 private:
     //==============================================================================
     // Your private member variables go here...
+    juce::Array<juce::File> getFiles();
+    
+    juce::AudioFormatManager audioFormatManager;
+    AudioPlayer              audioPlayer;
+    
+    const std::unique_ptr<juce::FileFilter>     filter;
+    std::unique_ptr<juce::FileBrowserComponent> browser;
+    
+    std::unique_ptr<juce::SidePanel> sidePanel;
+    juce::TextButton addButton;
+    juce::TextButton sidePanelButton;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
