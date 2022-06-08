@@ -3,15 +3,17 @@
 //==============================================================================
 MainComponent::MainComponent()
 : audioPlayer(audioFormatManager)
+, playlistComponent(audioFormatManager)
 {
     addAndMakeVisible(sidePanel);
+    addAndMakeVisible(playlistComponent);
     
     addButton.setButtonText("Add");
     addButton.onClick=[this]()
     {
         auto files = sidePanel.getFiles();
         for (auto id : files)
-            DBG((id.getFileNameWithoutExtension().toStdString()));
+            playlistComponent.insertTracks(id);
     };
     addAndMakeVisible(addButton);
 
@@ -35,8 +37,12 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
+    auto totalBounds = getLocalBounds();
+    auto panelWidth = totalBounds.proportionOfWidth(0.6);
+    auto playlistBounds = totalBounds.removeFromRight(panelWidth);
     addButton.setBounds(300, 350, 50, 50);
     sidePanelButton.setBounds(360, 350, 50, 50);
+    playlistComponent.setBounds(playlistBounds);
     
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should

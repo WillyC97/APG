@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
-add_subdirectory("${JUCE_DIR}")                   
+add_subdirectory("${JUCE_DIR}")
 
 # juce_set_vst2_sdk_path(...)
 
@@ -46,6 +46,8 @@ target_sources(APG
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
+        source/PlaylistComponent.cpp
+        source/PlaylistComponent.h
         source/SidePanelWithBrowser.h)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer

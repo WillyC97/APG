@@ -6,6 +6,7 @@
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
+#include "PlaylistComponent.h"
 #include "SidePanelWithBrowser.h"
 
 //==============================================================================
@@ -30,10 +31,13 @@ private:
     
     juce::AudioFormatManager audioFormatManager;
     AudioPlayer              audioPlayer;
+    
+    PlaylistComponent        playlistComponent;
         
-    SidePanelWithBrowser sidePanel;
-    juce::TextButton addButton;
-    juce::TextButton sidePanelButton;
+    SidePanelWithBrowser     sidePanel;
+    
+    juce::TextButton         addButton;
+    juce::TextButton         sidePanelButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
