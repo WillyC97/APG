@@ -12,7 +12,7 @@ public:
     , browser(std::make_unique<juce::FileBrowserComponent>( juce::FileBrowserComponent::openMode
                                                           | juce::FileBrowserComponent::canSelectFiles
                                                           | juce::FileBrowserComponent::canSelectMultipleItems
-                                                          , juce::File()
+                                                          , juce::File("~/Downloads")
                                                           , nullptr
                                                           , nullptr))
     {
