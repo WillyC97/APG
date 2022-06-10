@@ -2,7 +2,8 @@
 
 AudioPlayer::AudioPlayer(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
-{}
+{
+}
 
 void AudioPlayer::start()
 {
@@ -16,7 +17,16 @@ void AudioPlayer::stop()
 
 void AudioPlayer::load(const juce::File& audioFile)
 {
+    transportSource.stop();
+    transportSource.setSource(nullptr);
     
+    auto* reader = formatManager.createReaderFor(audioFile);
+    if (reader != nullptr)
+    {
+        auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+        transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+        readerSource.reset(newSource.release());
+    }
 }
 
 void AudioPlayer::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -27,6 +37,12 @@ void AudioPlayer::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 /** get the following audio buffer block */
 void AudioPlayer::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    if (readerSource.get() == nullptr)
+    {
+        bufferToFill.clearActiveBufferRegion();
+        return;
+    }
+    
     transportSource.getNextAudioBlock(bufferToFill);
 }
 

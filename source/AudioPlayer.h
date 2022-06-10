@@ -6,6 +6,7 @@ class AudioPlayer : public juce::AudioSource
 {
 public:
     AudioPlayer(juce::AudioFormatManager& _formatManager);
+    ~AudioPlayer() override = default;
     
     void start();
     void stop();
@@ -23,5 +24,6 @@ public:
         
 private:
     juce::AudioFormatManager&  formatManager;
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
 };

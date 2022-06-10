@@ -66,7 +66,9 @@ public:
     void savePlaylist(std::string playlistTracks);
 
     /** insert track data into respective vectors */
-    void insertTracks(juce::File id);
+    void insertTracks(juce::File& audioFile);
+    
+    juce::File getLastSong();
 
 private:
     juce::AudioFormatManager& formatManager;

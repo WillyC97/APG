@@ -174,23 +174,27 @@ void PlaylistComponent::savePlaylist(std::string playlistTracks)
     outlog.close();
 }
 
-void PlaylistComponent::insertTracks(juce::File id)
+juce::File PlaylistComponent::getLastSong()
 {
-    auto* reader = formatManager.createReaderFor(id);
-//    auto* reader = formatManager.createReaderFor(juce::URL{ id }.createInputStream(false));
-    if (reader != nullptr)
+    return songURL.back();
+}
+
+void PlaylistComponent::insertTracks(juce::File& audioFile)
+{
+    std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
+    if (reader)
     {
         auto lengthInSamples = reader->lengthInSamples;
-        auto sampleRate = reader->sampleRate;
+        auto sampleRate      = reader->sampleRate;
 
-        std::string title = id.getFileNameWithoutExtension().toStdString();
-        std::string artist = id.getFileNameWithoutExtension().toStdString();
-        std::string timeLength = secondsToMins(lengthInSamples/sampleRate);
+        auto title      = audioFile.getFileNameWithoutExtension().toStdString();
+        auto artist     = audioFile.getFileNameWithoutExtension().toStdString();
+        auto timeLength = secondsToMins(lengthInSamples/sampleRate);
 
         trackNumber.push_back(trackNo);
         trackTitles.push_back(title);
         duration.push_back(timeLength);
-        songURL.push_back(id);
+        songURL.push_back(audioFile);
         trackNo = trackNo + 1;
     }
     tableComponent.updateContent();
