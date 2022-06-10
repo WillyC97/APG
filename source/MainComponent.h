@@ -5,18 +5,28 @@
 // have called `juce_generate_juce_header(<thisTarget>)` in your CMakeLists.txt,
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
+#include "AudioPlayer.h"
+#include "PlaylistComponent.h"
+#include "SidePanelWithBrowser.h"
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public juce::Component
+class MainComponent
+    : public juce::AudioAppComponent
+    , private AudioPlayer::Listener
 {
 public:
     //==============================================================================
     MainComponent();
-
+    ~MainComponent();
+    
+    //==============================================================================
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void releaseResources() override;
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -24,6 +34,21 @@ public:
 private:
     //==============================================================================
     // Your private member variables go here...
-
+    juce::Array<juce::File> getFiles();
+    
+    void StreamFinished() override;
+    
+    juce::AudioFormatManager audioFormatManager;
+    AudioPlayer              audioPlayer;
+    
+    PlaylistComponent        playlistComponent;
+        
+    SidePanelWithBrowser     sidePanel;
+    
+    juce::TextButton         addButton;
+    juce::TextButton         sidePanelButton;
+    juce::TextButton         playButton;
+    juce::TextButton         loadButton;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
