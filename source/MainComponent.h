@@ -16,6 +16,7 @@
 */
 class MainComponent
     : public juce::AudioAppComponent
+    , private AudioPlayer::Listener
 {
 public:
     //==============================================================================
@@ -34,6 +35,8 @@ private:
     //==============================================================================
     // Your private member variables go here...
     juce::Array<juce::File> getFiles();
+    
+    void StreamFinished() override;
     
     juce::AudioFormatManager audioFormatManager;
     AudioPlayer              audioPlayer;

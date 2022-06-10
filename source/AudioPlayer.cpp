@@ -44,6 +44,12 @@ void AudioPlayer::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
     }
     
     transportSource.getNextAudioBlock(bufferToFill);
+    if (transportSource.hasStreamFinished())
+    {
+        listeners.call([=](auto &l) { l.StreamFinished(); });
+        transportSource.setPosition(0);
+    }
+        
 }
 
 /** allows the source to release anything it no longer needs after playback has stopped */
@@ -52,3 +58,12 @@ void AudioPlayer::releaseResources()
     transportSource.releaseResources();
 }
 
+void AudioPlayer::AddListener(Listener &l)
+{
+    listeners.add(&l);
+}
+
+void AudioPlayer::RemoveListener(Listener &l)
+{
+    listeners.remove(&l);
+}
