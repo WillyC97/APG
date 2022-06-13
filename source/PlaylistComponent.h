@@ -13,6 +13,8 @@ class PlaylistComponent
 {
 public:
     PlaylistComponent(juce::AudioFormatManager& _formatManager);
+    
+    struct TrackInformation;
 
    /** fills the component's background and draws text */
     void paint(juce::Graphics&) override;
@@ -57,7 +59,8 @@ public:
 
     static std::vector<juce::File> songURL;
     static std::vector<std::string> trackTitles;
-    static int selectedRowNo;
+    static std::vector<PlaylistComponent::TrackInformation> tracks;
+    static unsigned int selectedRowNo;
 
     /** triggers when a different row is selected */
     void selectedRowsChanged(int lastRowSelected) override;
@@ -68,7 +71,10 @@ public:
     /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
     
-    juce::File getLastSong();
+    PlaylistComponent::TrackInformation getFinalSongInPlaylist();
+    
+    void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
+    int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
 
 private:
     juce::AudioFormatManager& formatManager;
@@ -81,9 +87,19 @@ private:
     juce::TextEditor searchBar;
     juce::TextButton addButton{ "Add tracks to playlist" };
     
-    int trackNo;
-   
+    int totalTracksInPlaylist;
+    int lastTrackNoPlayed;
+                              
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistComponent)
 };
+
+struct PlaylistComponent::TrackInformation
+{
+    const int          trackNumber;
+    const juce::String trackName;
+    const juce::String songDuration;
+    const juce::File   songFileLocation;
+};
+
 
 

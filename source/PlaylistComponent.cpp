@@ -4,13 +4,14 @@
 
 std::vector<std::string> PlaylistComponent::trackTitles;
 std::vector<juce::File> PlaylistComponent::songURL;
-int PlaylistComponent::selectedRowNo;
+std::vector<PlaylistComponent::TrackInformation> PlaylistComponent::tracks;
+unsigned int PlaylistComponent::selectedRowNo;
 
 PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
 {
     trackNumber.push_back(0);
-    trackNo = 1;
+    totalTracksInPlaylist = 1;
 
     tableComponent.getHeader().addColumn("Track number", 1, 50);
     tableComponent.getHeader().addColumn("Track title", 2, 200);
@@ -108,25 +109,25 @@ void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId
 
         if (columnId == 1)
         {
-            g.drawText(std::to_string(trackNumber[rowNumber + 1]), 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(juce::String(tracks[rowNumber].trackNumber), 1, 0, width, height, juce::Justification::centredLeft, true);
         }
         if (columnId == 2)
         {
-            g.drawText(trackTitles[rowNumber], 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(tracks[rowNumber].trackName, 1, 0, width, height, juce::Justification::centredLeft, true);
         }
         if (columnId == 3)
         {
-            g.drawText(duration[rowNumber], 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(tracks[rowNumber].songDuration, 1, 0, width, height, juce::Justification::centredLeft, true);
         }
     }
-  
 }
 
-juce::Component* PlaylistComponent::refreshComponentForCell(int rowNumber,
-    int columnId,
-    bool isRowSelected,
-    juce::Component* existingComponentToUpdate)
+juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
+                                                           , int columnId
+                                                           , bool isRowSelected
+                                                           , juce::Component* existingComponentToUpdate)
 {
+    juce::ignoreUnused(rowNumber, columnId, isRowSelected);
     return existingComponentToUpdate;
 }
 
@@ -153,17 +154,16 @@ std::string PlaylistComponent::secondsToMins(double seconds)
     return songLength;
 }
 
-void PlaylistComponent::cellClicked(int rowNumber,
-    int columnId,
-    const juce::MouseEvent&)
+void PlaylistComponent::cellClicked(int rowNumber, int columnId, const juce::MouseEvent&)
 {
-    selectedRowNo = trackNumber[tableComponent.getSelectedRow() + 1];
+    DBG(rowNumber);
+    selectedRowNo = trackNumber[rowNumber];
     tableComponent.repaint();
 }
 
 void PlaylistComponent::selectedRowsChanged(int lastRowSelected)
 {
-    selectedRowNo = trackNumber[tableComponent.getSelectedRow() + 1];
+    selectedRowNo = trackNumber[lastRowSelected];
     tableComponent.repaint();
 }
 
@@ -174,9 +174,9 @@ void PlaylistComponent::savePlaylist(std::string playlistTracks)
     outlog.close();
 }
 
-juce::File PlaylistComponent::getLastSong()
+PlaylistComponent::TrackInformation PlaylistComponent::getFinalSongInPlaylist()
 {
-    return songURL.back();
+    return tracks.back();
 }
 
 void PlaylistComponent::insertTracks(juce::File& audioFile)
@@ -187,15 +187,20 @@ void PlaylistComponent::insertTracks(juce::File& audioFile)
         auto lengthInSamples = reader->lengthInSamples;
         auto sampleRate      = reader->sampleRate;
 
-        auto title      = audioFile.getFileNameWithoutExtension().toStdString();
-        auto artist     = audioFile.getFileNameWithoutExtension().toStdString();
-        auto timeLength = secondsToMins(lengthInSamples/sampleRate);
+        auto title         = audioFile.getFileNameWithoutExtension().toStdString();
+        auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
+        auto trackDuration = secondsToMins(lengthInSamples/sampleRate);
 
-        trackNumber.push_back(trackNo);
+        tracks.push_back({ totalTracksInPlaylist
+                         , title
+                         , trackDuration
+                         , audioFile});
+        
+        trackNumber.push_back(totalTracksInPlaylist);
         trackTitles.push_back(title);
-        duration.push_back(timeLength);
-        songURL.push_back(audioFile);
-        trackNo = trackNo + 1;
+        duration   .push_back(trackDuration);
+        songURL    .push_back(audioFile);
+        totalTracksInPlaylist += 1;
     }
     tableComponent.updateContent();
 }
