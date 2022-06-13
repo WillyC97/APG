@@ -25,16 +25,12 @@ MainComponent::MainComponent()
     addAndMakeVisible(playButton);
 
     loadButton.setButtonText("Load");
-    loadButton.onClick=[this]()
+    loadButton.onClick=[=]()
     {
-        if (PlaylistComponent::selectedRowNo > 0)
-        {
-            auto selectedTrack = PlaylistComponent::songURL[PlaylistComponent::selectedRowNo - 1];
-            DBG(selectedTrack.getFullPathName());
-            audioPlayer.load(selectedTrack);
-            audioPlayer.start();
-        }
+        auto selectedTrack = PlaylistComponent::tracks[PlaylistComponent::selectedRowNo];
+        LoadAndPlayTrack(selectedTrack);
     };
+    
     addAndMakeVisible(loadButton);
     
     sidePanelButton.setButtonText("Browse Files");
@@ -87,13 +83,25 @@ void MainComponent::resized()
     playlistComponent.setBounds(playlistBounds);
     playButton.setBounds(250, 350, 50, 50);
     loadButton.setBounds(200, 350, 50, 50);
-    
-    // This is called when the MainComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
 }
 
 void MainComponent::StreamFinished()
 {
     DBG("Stream finished");
+    auto finalSongInPlaylistTrackNo = playlistComponent.getFinalSongInPlaylist().trackNumber;
+    auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
+    if (finalSongInPlaylistTrackNo != lastSongPlayedTrackNo)
+        LoadAndPlayTrack(PlaylistComponent::tracks[unsigned(lastSongPlayedTrackNo)]);
+}
+
+void MainComponent::LoadAndPlayTrack(PlaylistComponent::TrackInformation& track)
+{
+    auto filePath = track.songFileLocation;
+    auto trackNo  = track.trackNumber;
+    DBG(filePath.getFullPathName());
+    
+    audioPlayer.load(filePath);
+    audioPlayer.start();
+    
+    playlistComponent.SetLastTrackNoPlayed(trackNo);
 }

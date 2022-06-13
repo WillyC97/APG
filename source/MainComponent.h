@@ -38,10 +38,13 @@ private:
     
     void StreamFinished() override;
     
+    void LoadAndPlayTrack(PlaylistComponent::TrackInformation& fileToPlay);
+    
     juce::AudioFormatManager audioFormatManager;
     AudioPlayer              audioPlayer;
     
     PlaylistComponent        playlistComponent;
+    juce::File               lastTrackPlayedDir;
         
     SidePanelWithBrowser     sidePanel;
     
