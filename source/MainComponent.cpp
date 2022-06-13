@@ -1,9 +1,12 @@
 #include "MainComponent.h"
+#include "BinaryData.h"
 
 //==============================================================================
 MainComponent::MainComponent()
     : audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
+    , playPauseButton("PlayPause", juce::DrawableButton::ImageFitted)
+    , state(TransportState::Stopped)
 {
     audioPlayer.AddListener(*this);
     addAndMakeVisible(sidePanel);
@@ -18,19 +21,30 @@ MainComponent::MainComponent()
     };
     addAndMakeVisible(addButton);
     
-    playButton.setButtonText("Play");
-    playButton.onClick=[this](){
-        audioPlayer.start();
-    };
+    auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
+                                                    , BinaryData::play_pngSize);
+    auto pauseImage = juce::ImageCache::getFromMemory( BinaryData::pause_png
+                                                     , BinaryData::pause_pngSize);
+
+    auto transparent = juce::Colours::transparentBlack;
+    playButton.setImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
+    playButton.onClick=[=](){ audioPlayer.start(); };
     addAndMakeVisible(playButton);
 
+    pauseButton.setImages(false, true, true, pauseImage, 0.9f, transparent, pauseImage, 0.5f, transparent, pauseImage, 1.0f, transparent);
+    pauseButton.onClick=[=](){ audioPlayer.stop(); };
+    addChildComponent(pauseButton);
+    
     loadButton.setButtonText("Load");
     loadButton.onClick=[=]()
     {
-        auto selectedTrack = PlaylistComponent::tracks[PlaylistComponent::selectedRowNo];
-        LoadAndPlayTrack(selectedTrack);
+        auto tracks = PlaylistComponent::tracks;
+        if (!tracks.empty())
+        {
+            auto selectedTrack = tracks[PlaylistComponent::selectedRowNo];
+            LoadAndPlayTrack(selectedTrack);
+        }
     };
-    
     addAndMakeVisible(loadButton);
     
     sidePanelButton.setButtonText("Browse Files");
@@ -47,6 +61,7 @@ MainComponent::~MainComponent()
     audioPlayer.RemoveListener(*this);
     shutdownAudio();
 }
+
 //==============================================================================
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -82,7 +97,9 @@ void MainComponent::resized()
     sidePanelButton.setBounds(360, 350, 50, 50);
     playlistComponent.setBounds(playlistBounds);
     playButton.setBounds(250, 350, 50, 50);
+    pauseButton.setBounds(250, 350, 50, 50);
     loadButton.setBounds(200, 350, 50, 50);
+    playPauseButton.setBounds(100, 350, 50, 50);
 }
 
 void MainComponent::StreamFinished()
@@ -92,6 +109,36 @@ void MainComponent::StreamFinished()
     auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
     if (finalSongInPlaylistTrackNo != lastSongPlayedTrackNo)
         LoadAndPlayTrack(PlaylistComponent::tracks[unsigned(lastSongPlayedTrackNo)]);
+}
+
+void MainComponent::TransportStateChanged(const TransportState &newState)
+{
+    if (state != newState)
+    {
+        state = newState;
+
+        switch (state)
+        {
+            case TransportState::Stopped:                           // [3]
+                pauseButton.setVisible(false);
+                playButton .setVisible(true);
+                break;
+
+            case TransportState::Starting:                          // [4]
+                playButton .setVisible(false);
+                audioPlayer.start();
+                break;
+
+            case TransportState::Playing:                           // [5]
+                pauseButton.setVisible(true);
+                playButton .setVisible(false);
+                break;
+
+            case TransportState::Stopping:                          // [6]
+                audioPlayer.stop();
+                break;
+        }
+    }
 }
 
 void MainComponent::LoadAndPlayTrack(PlaylistComponent::TrackInformation& track)

@@ -37,6 +37,7 @@ private:
     juce::Array<juce::File> getFiles();
     
     void StreamFinished() override;
+    void TransportStateChanged(const TransportState& state) override;
     
     void LoadAndPlayTrack(PlaylistComponent::TrackInformation& fileToPlay);
     
@@ -50,8 +51,12 @@ private:
     
     juce::TextButton         addButton;
     juce::TextButton         sidePanelButton;
-    juce::TextButton         playButton;
     juce::TextButton         loadButton;
+    
+    juce::ImageButton        playButton;
+    juce::ImageButton        pauseButton;
+    
+    TransportState state;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
