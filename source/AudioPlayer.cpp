@@ -16,6 +16,16 @@ void AudioPlayer::stop()
     transportSource.stop();
 }
 
+void AudioPlayer::SetTransportPosition(const double newPos)
+{
+    transportSource.setPosition(newPos);
+}
+
+const double AudioPlayer::getTransportPosition()
+{
+    return transportSource.getCurrentPosition();
+}
+
 void AudioPlayer::load(const juce::File& audioFile)
 {
     transportSource.stop();

@@ -39,6 +39,7 @@ private:
     void StreamFinished() override;
     void TransportStateChanged(const TransportState& state) override;
     
+    void SkipBackward();
     void LoadAndPlayTrack(PlaylistComponent::TrackInformation& fileToPlay);
     
     juce::AudioFormatManager audioFormatManager;
@@ -55,6 +56,8 @@ private:
     
     juce::ImageButton        playButton;
     juce::ImageButton        pauseButton;
+    juce::ImageButton        skipForwardButton;
+    juce::ImageButton        skipBackwardButton;
     
     TransportState state;
     

@@ -14,6 +14,8 @@ public:
     
     void start();
     void stop();
+    const double getTransportPosition();
+    void SetTransportPosition(const double newPos);
     void load(const juce::File& audioFile);
     
     //juce::AudioSource

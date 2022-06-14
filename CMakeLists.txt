@@ -79,7 +79,9 @@ juce_add_binary_data(BinaryData
           resources/play.svg
           resources/pause.svg
           resources/play.png
-          resources/pause.png)
+          resources/pause.png
+          resources/skip_forward.png
+          resources/skip_backward.png)
 
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_gui_extra` module. Inter-module
