@@ -119,22 +119,22 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
 
         switch (state)
         {
-            case TransportState::Stopped:                           // [3]
+            case TransportState::Stopped:
                 pauseButton.setVisible(false);
                 playButton .setVisible(true);
                 break;
 
-            case TransportState::Starting:                          // [4]
+            case TransportState::Starting:
                 playButton .setVisible(false);
                 audioPlayer.start();
                 break;
 
-            case TransportState::Playing:                           // [5]
+            case TransportState::Playing:
                 pauseButton.setVisible(true);
                 playButton .setVisible(false);
                 break;
 
-            case TransportState::Stopping:                          // [6]
+            case TransportState::Stopping:
                 audioPlayer.stop();
                 break;
         }
