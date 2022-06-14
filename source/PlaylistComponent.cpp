@@ -16,6 +16,7 @@ PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
     tableComponent.getHeader().addColumn("#", 1, 50);
     tableComponent.getHeader().addColumn("Track title", 2, 200);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
+    tableComponent.getHeader().addColumn("Play", 4, 50, 50, 50);
 
     tableComponent.getHeader().setStretchToFitActive(true);
 
@@ -127,7 +128,17 @@ juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
                                                            , bool isRowSelected
                                                            , juce::Component* existingComponentToUpdate)
 {
-    juce::ignoreUnused(rowNumber, columnId, isRowSelected);
+    if (columnId == 4)  // [8]
+    {
+        auto* selectionBox = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
+
+        if (selectionBox == nullptr)
+            selectionBox = new TableImageButtonCustomComponent (*this);
+
+        selectionBox->setRowAndColumn (rowNumber, columnId);
+        return selectionBox;
+    }
+
     return existingComponentToUpdate;
 }
 
@@ -169,9 +180,9 @@ void PlaylistComponent::selectedRowsChanged(int lastRowSelected)
 
 void PlaylistComponent::savePlaylist(std::string playlistTracks)
 {
-    std::ofstream outlog("playlist.txt", std::ofstream::app);
-    outlog << playlistTracks << std::endl;
-    outlog.close();
+//    std::ofstream outlog("playlist.txt", std::ofstream::app);
+//    outlog << playlistTracks << std::endl;
+//    outlog.close();
 }
 
 PlaylistComponent::TrackInformation PlaylistComponent::getFinalSongInPlaylist()
@@ -182,6 +193,11 @@ PlaylistComponent::TrackInformation PlaylistComponent::getFinalSongInPlaylist()
 PlaylistComponent::TrackInformation PlaylistComponent::GetFirstSongInPlaylist()
 {
     return tracks.front();
+}
+
+void PlaylistComponent::RowPlayButtonClicked(const int& row)
+{
+    listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
 
 void PlaylistComponent::insertTracks(juce::File& audioFile)

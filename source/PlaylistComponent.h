@@ -3,8 +3,9 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include <vector>
-#include <string>
-#include <fstream>
+//#include <string>
+//#include <fstream>
+#include "BinaryData.h"
 
 class PlaylistComponent
     : public juce::Component
@@ -15,6 +16,7 @@ public:
     PlaylistComponent(juce::AudioFormatManager& _formatManager);
     
     struct TrackInformation;
+    class Listener;
 
    /** fills the component's background and draws text */
     void paint(juce::Graphics&) override;
@@ -76,7 +78,12 @@ public:
     
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
+    
+    void RowPlayButtonClicked(const int& row);
 
+    void AddListener   (Listener &l) { listeners.add(&l); }
+    void RemoveListener(Listener &l) { listeners.remove(&l); }
+    
 private:
     juce::AudioFormatManager& formatManager;
     
@@ -90,6 +97,8 @@ private:
     
     int totalTracksInPlaylist;
     int lastTrackNoPlayed;
+    
+    juce::ListenerList<Listener> listeners;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistComponent)
 };
@@ -102,5 +111,46 @@ struct PlaylistComponent::TrackInformation
     const juce::File   songFileLocation;
 };
 
+//==============================================================================
+class TableImageButtonCustomComponent
+    : public juce::Component
+{
+public:
+    TableImageButtonCustomComponent(PlaylistComponent& td)
+        : owner (td)
+    {
+        auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
+                                                        , BinaryData::play_pngSize);
+        auto transparent = juce::Colours::transparentBlack;
+        playButton.setImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
+        addAndMakeVisible(playButton);
 
+        playButton.onClick = [this] { owner.RowPlayButtonClicked(row); };
+    }
+
+    void resized() override
+    {
+        playButton.setBoundsInset (juce::BorderSize<int> (2));
+    }
+
+    void setRowAndColumn (int newRow, int newColumn)
+    {
+        row      = newRow;
+        columnId = newColumn;
+    }
+
+private:
+    PlaylistComponent& owner;
+    juce::ImageButton playButton;
+    int row, columnId;
+};
+
+//==============================================================================
+class PlaylistComponent::Listener
+{
+public:
+    virtual ~Listener() = default;
+    
+    virtual void PlayButtonClicked(const int& row) = 0;
+};
 

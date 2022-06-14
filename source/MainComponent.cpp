@@ -9,6 +9,7 @@ MainComponent::MainComponent()
     , state(TransportState::Stopped)
 {
     audioPlayer.AddListener(*this);
+    playlistComponent.AddListener(*this);
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
     
@@ -47,17 +48,6 @@ MainComponent::MainComponent()
     skipBackwardButton.onClick=[=](){ SkipBackward(); };
     addAndMakeVisible(skipBackwardButton);
     
-    loadButton.setButtonText("Load");
-    loadButton.onClick=[=]()
-    {
-        auto tracks = PlaylistComponent::tracks;
-        if (!tracks.empty())
-        {
-            auto selectedTrack = tracks[PlaylistComponent::selectedRowNo];
-            LoadAndPlayTrack(selectedTrack);
-        }
-    };
-    addAndMakeVisible(loadButton);
     
     sidePanelButton.setButtonText("Browse Files");
     sidePanelButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
@@ -119,7 +109,6 @@ void MainComponent::resized()
     playlistComponent.setBounds(playlistBounds);
     playButton.setBounds(250, 350, 50, 50);
     pauseButton.setBounds(250, 350, 50, 50);
-    loadButton.setBounds(200, 350, 50, 50);
     skipForwardButton.setBounds(100, 350, 40, 40);
     skipBackwardButton.setBounds(50, 350, 40, 40);
     playPauseButton.setBounds(100, 350, 50, 50);
@@ -163,6 +152,16 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
                 audioPlayer.stop();
                 break;
         }
+    }
+}
+
+void MainComponent::PlayButtonClicked(const int &row)
+{
+    auto tracks = PlaylistComponent::tracks;
+    if (!tracks.empty())
+    {
+        auto selectedTrack = tracks[unsigned(row)];
+        LoadAndPlayTrack(selectedTrack);
     }
 }
 
