@@ -2,15 +2,20 @@
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
-class AudioPlayer : public juce::AudioSource
+class AudioPlayer
+    : public juce::AudioSource
+    , public juce::ChangeListener
 {
 public:
     AudioPlayer(juce::AudioFormatManager& _formatManager);
     ~AudioPlayer() override = default;
     
     class Listener;
+    
     void start();
     void stop();
+    const double getTransportPosition();
+    void SetTransportPosition(const double newPos);
     void load(const juce::File& audioFile);
     
     //juce::AudioSource
@@ -25,7 +30,9 @@ public:
     
     void AddListener   (Listener &l);
     void RemoveListener(Listener &l);
-        
+    
+    void changeListenerCallback (juce::ChangeBroadcaster* source) override;
+            
 private:
     juce::AudioFormatManager&  formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
@@ -34,10 +41,22 @@ private:
     juce::ListenerList<Listener> listeners;
 };
 
+//=============================================================================
+enum class TransportState
+{
+    Stopped,
+    Starting,
+    Playing,
+    Stopping
+};
+
+//=============================================================================
 class AudioPlayer::Listener
 {
 public:
     virtual ~Listener() = default;
     
     virtual void StreamFinished() = 0;
+    
+    virtual void TransportStateChanged(const TransportState& state) = 0;
 };

@@ -71,6 +71,7 @@ public:
     /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
     
+    PlaylistComponent::TrackInformation GetFirstSongInPlaylist();
     PlaylistComponent::TrackInformation getFinalSongInPlaylist();
     
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }

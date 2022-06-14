@@ -13,7 +13,7 @@ PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
     trackNumber.push_back(0);
     totalTracksInPlaylist = 1;
 
-    tableComponent.getHeader().addColumn("Track number", 1, 50);
+    tableComponent.getHeader().addColumn("#", 1, 50);
     tableComponent.getHeader().addColumn("Track title", 2, 200);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
 
@@ -109,7 +109,7 @@ void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId
 
         if (columnId == 1)
         {
-            g.drawText(juce::String(tracks[rowNumber].trackNumber), 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(juce::String(tracks[rowNumber].trackNumber), 1, 0, width, height, juce::Justification::centred, true);
         }
         if (columnId == 2)
         {
@@ -177,6 +177,11 @@ void PlaylistComponent::savePlaylist(std::string playlistTracks)
 PlaylistComponent::TrackInformation PlaylistComponent::getFinalSongInPlaylist()
 {
     return tracks.back();
+}
+
+PlaylistComponent::TrackInformation PlaylistComponent::GetFirstSongInPlaylist()
+{
+    return tracks.front();
 }
 
 void PlaylistComponent::insertTracks(juce::File& audioFile)

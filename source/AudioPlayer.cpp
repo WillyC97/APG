@@ -3,8 +3,9 @@
 AudioPlayer::AudioPlayer(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
 {
+    transportSource.addChangeListener(this);
 }
-
+//==============================================================================
 void AudioPlayer::start()
 {
     transportSource.start();
@@ -13,6 +14,16 @@ void AudioPlayer::start()
 void AudioPlayer::stop()
 {
     transportSource.stop();
+}
+
+void AudioPlayer::SetTransportPosition(const double newPos)
+{
+    transportSource.setPosition(newPos);
+}
+
+const double AudioPlayer::getTransportPosition()
+{
+    return transportSource.getCurrentPosition();
 }
 
 void AudioPlayer::load(const juce::File& audioFile)
@@ -29,6 +40,7 @@ void AudioPlayer::load(const juce::File& audioFile)
     }
 }
 
+//==============================================================================
 void AudioPlayer::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
@@ -49,7 +61,6 @@ void AudioPlayer::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
         listeners.call([=](auto &l) { l.StreamFinished(); });
         transportSource.setPosition(0);
     }
-        
 }
 
 /** allows the source to release anything it no longer needs after playback has stopped */
@@ -57,6 +68,19 @@ void AudioPlayer::releaseResources()
 {
     transportSource.releaseResources();
 }
+//==============================================================================
+
+void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster* source)
+{
+    if (source == &transportSource)
+    {
+        if (transportSource.isPlaying())
+            listeners.call([=](auto &l) { l.TransportStateChanged(TransportState::Playing); });
+        else
+            listeners.call([=](auto &l) { l.TransportStateChanged(TransportState::Stopped); });
+    }
+}
+//==============================================================================
 
 void AudioPlayer::AddListener(Listener &l)
 {
@@ -67,3 +91,4 @@ void AudioPlayer::RemoveListener(Listener &l)
 {
     listeners.remove(&l);
 }
+//==============================================================================
