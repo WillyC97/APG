@@ -43,7 +43,7 @@ private:
     void PlayButtonClicked(const int& row) override;
     
     void SkipBackward();
-    void LoadAndPlayTrack(PlaylistComponent::TrackInformation& fileToPlay);
+    void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
     
     juce::AudioFormatManager audioFormatManager;
     AudioPlayer              audioPlayer;

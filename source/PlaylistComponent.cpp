@@ -1,10 +1,9 @@
 #include <juce_audio_utils/juce_audio_utils.h>
+#include <algorithm>
 
 #include "PlaylistComponent.h"
+#include "BinaryData.h"
 
-std::vector<std::string> PlaylistComponent::trackTitles;
-std::vector<juce::File> PlaylistComponent::songURL;
-std::vector<PlaylistComponent::TrackInformation> PlaylistComponent::tracks;
 unsigned int PlaylistComponent::selectedRowNo;
 
 PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
@@ -17,9 +16,10 @@ PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
     tableComponent.getHeader().addColumn("Track title", 2, 200);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
     tableComponent.getHeader().addColumn("Play", 4, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Remove", 5, 50);
 
     tableComponent.getHeader().setStretchToFitActive(true);
-
+    tableComponent.setRowHeight(42);
     tableComponent.setModel(this);
 
     addAndMakeVisible(tableComponent);
@@ -89,7 +89,7 @@ void PlaylistComponent::resized()
 
 int PlaylistComponent::getNumRows()
 {
-    return trackTitles.size();
+    return tracks.size();
 }
 
 void PlaylistComponent::paintRowBackground(juce::Graphics& g, int rowNumber, int width, int height, bool rowIsSelected)
@@ -110,15 +110,15 @@ void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId
 
         if (columnId == 1)
         {
-            g.drawText(juce::String(tracks[rowNumber].trackNumber), 1, 0, width, height, juce::Justification::centred, true);
+            g.drawText(juce::String(tracks[rowNumber]->trackNumber), 1, 0, width, height, juce::Justification::centred, true);
         }
         if (columnId == 2)
         {
-            g.drawText(tracks[rowNumber].trackName, 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(tracks[rowNumber]->trackName, 1, 0, width, height, juce::Justification::centredLeft, true);
         }
         if (columnId == 3)
         {
-            g.drawText(tracks[rowNumber].songDuration, 1, 0, width, height, juce::Justification::centredLeft, true);
+            g.drawText(tracks[rowNumber]->songDuration, 1, 0, width, height, juce::Justification::centredLeft, true);
         }
     }
 }
@@ -130,16 +130,54 @@ juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
 {
     if (columnId == 4)  // [8]
     {
-        auto* selectionBox = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
+        auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
+        
+        if (playButton == nullptr)
+            playButton = new TableImageButtonCustomComponent (*this);
+        
+        auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
+                                                        , BinaryData::play_pngSize);
 
-        if (selectionBox == nullptr)
-            selectionBox = new TableImageButtonCustomComponent (*this);
+        playButton->setRowAndColumn (rowNumber, columnId);
+        auto transparent = juce::Colours::transparentBlack;
+        playButton->SetButtonImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
+        playButton->ButtonPressed = [=] (int row)
+        {
+            RowPlayButtonClicked(row);
+        };
+        return playButton;
+    }
+    
+    if (columnId == 5)  // [8]
+    {
+        auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
-        selectionBox->setRowAndColumn (rowNumber, columnId);
-        return selectionBox;
+        if (deleteButton == nullptr)
+            deleteButton = new TableImageButtonCustomComponent (*this);
+        
+        auto deleteButtonImage = juce::ImageCache::getFromMemory( BinaryData::cross_png
+                                                                , BinaryData::cross_pngSize);
+
+        deleteButton->setRowAndColumn (rowNumber, columnId);
+        auto transparent = juce::Colours::transparentBlack;
+        deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
+        deleteButton->ButtonPressed = [=] (int row)
+        {
+            tracks.remove(row);
+            totalTracksInPlaylist -= 1;
+            UpdateTrackID();
+            tableComponent.updateContent();
+        };
+        return deleteButton;
     }
 
-    return existingComponentToUpdate;
+    return nullptr;
+}
+
+void PlaylistComponent::UpdateTrackID()
+{
+    for(int i = 0; i < tracks.size(); ++i)
+        tracks[i]->trackNumber = i + 1;
 }
 
 void PlaylistComponent::buttonClicked(juce::Button* button)
@@ -185,14 +223,14 @@ void PlaylistComponent::savePlaylist(std::string playlistTracks)
 //    outlog.close();
 }
 
-PlaylistComponent::TrackInformation PlaylistComponent::getFinalSongInPlaylist()
+PlaylistComponent::TrackInformation* PlaylistComponent::getFinalSongInPlaylist()
 {
-    return tracks.back();
+    return tracks.getLast();
 }
 
-PlaylistComponent::TrackInformation PlaylistComponent::GetFirstSongInPlaylist()
+PlaylistComponent::TrackInformation* PlaylistComponent::GetFirstSongInPlaylist()
 {
-    return tracks.front();
+    return tracks.getFirst();
 }
 
 void PlaylistComponent::RowPlayButtonClicked(const int& row)
@@ -212,15 +250,13 @@ void PlaylistComponent::insertTracks(juce::File& audioFile)
         auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
         auto trackDuration = secondsToMins(lengthInSamples/sampleRate);
 
-        tracks.push_back({ totalTracksInPlaylist
-                         , title
-                         , trackDuration
-                         , audioFile});
+        tracks.add(new TrackInformation { totalTracksInPlaylist
+                                        , title
+                                        , trackDuration
+                                        , audioFile});
         
         trackNumber.push_back(totalTracksInPlaylist);
         trackTitles.push_back(title);
-        duration   .push_back(trackDuration);
-        songURL    .push_back(audioFile);
         totalTracksInPlaylist += 1;
     }
     tableComponent.updateContent();

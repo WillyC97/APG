@@ -5,7 +5,7 @@
 MainComponent::MainComponent()
     : audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
-    , playPauseButton("PlayPause", juce::DrawableButton::ImageFitted)
+//    , playPauseButton("PlayPause", juce::DrawableButton::ImageFitted)
     , state(TransportState::Stopped)
 {
     audioPlayer.AddListener(*this);
@@ -111,17 +111,20 @@ void MainComponent::resized()
     pauseButton.setBounds(250, 350, 50, 50);
     skipForwardButton.setBounds(100, 350, 40, 40);
     skipBackwardButton.setBounds(50, 350, 40, 40);
-    playPauseButton.setBounds(100, 350, 50, 50);
+//    playPauseButton.setBounds(100, 350, 50, 50);
 }
 
 void MainComponent::StreamFinished()
 {
-    if (!PlaylistComponent::tracks.empty())
+    if (playlistComponent.tracks.size() > 1)
     {
-        auto finalSongInPlaylistTrackNo = playlistComponent.getFinalSongInPlaylist().trackNumber;
+        auto finalSongInPlaylistTrackNo = playlistComponent.getFinalSongInPlaylist()->trackNumber;
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
         if (finalSongInPlaylistTrackNo != lastSongPlayedTrackNo)
-            LoadAndPlayTrack(PlaylistComponent::tracks[unsigned(lastSongPlayedTrackNo)]);
+        {
+            auto track = playlistComponent.tracks[unsigned(lastSongPlayedTrackNo)];
+            LoadAndPlayTrack(*track);
+        }
     }
 }
 
@@ -157,15 +160,14 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
 
 void MainComponent::PlayButtonClicked(const int &row)
 {
-    auto tracks = PlaylistComponent::tracks;
-    if (!tracks.empty())
+    if (!playlistComponent.tracks.isEmpty())
     {
-        auto selectedTrack = tracks[unsigned(row)];
-        LoadAndPlayTrack(selectedTrack);
+        auto selectedTrack = playlistComponent.tracks[unsigned(row)];
+        LoadAndPlayTrack(*selectedTrack);
     }
 }
 
-void MainComponent::LoadAndPlayTrack(PlaylistComponent::TrackInformation& track)
+void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& track)
 {
     auto filePath = track.songFileLocation;
     auto trackNo  = track.trackNumber;
@@ -183,12 +185,12 @@ void MainComponent::SkipBackward()
         audioPlayer.SetTransportPosition(0.0);
     else
     {
-        if (!PlaylistComponent::tracks.empty())
+        if (!playlistComponent.tracks.isEmpty())
         {
-            auto firstSongInPlaylistTrackNo = playlistComponent.GetFirstSongInPlaylist().trackNumber;
+            auto firstSongInPlaylistTrackNo = playlistComponent.GetFirstSongInPlaylist()->trackNumber;
             auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
             if (firstSongInPlaylistTrackNo != lastSongPlayedTrackNo)
-                LoadAndPlayTrack(PlaylistComponent::tracks[unsigned(lastSongPlayedTrackNo) - 2]);
+                LoadAndPlayTrack(*playlistComponent.tracks[unsigned(lastSongPlayedTrackNo) - 2]);
         }
     }
 }

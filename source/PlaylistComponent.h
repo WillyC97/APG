@@ -5,7 +5,6 @@
 #include <vector>
 //#include <string>
 //#include <fstream>
-#include "BinaryData.h"
 
 class PlaylistComponent
     : public juce::Component
@@ -59,9 +58,8 @@ public:
     /** triggers when button clicked */
     void buttonClicked(juce::Button* button) override;
 
-    static std::vector<juce::File> songURL;
-    static std::vector<std::string> trackTitles;
-    static std::vector<PlaylistComponent::TrackInformation> tracks;
+    std::vector<std::string> trackTitles;
+    juce::OwnedArray<PlaylistComponent::TrackInformation> tracks;
     static unsigned int selectedRowNo;
 
     /** triggers when a different row is selected */
@@ -73,8 +71,8 @@ public:
     /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
     
-    PlaylistComponent::TrackInformation GetFirstSongInPlaylist();
-    PlaylistComponent::TrackInformation getFinalSongInPlaylist();
+    PlaylistComponent::TrackInformation* GetFirstSongInPlaylist();
+    PlaylistComponent::TrackInformation* getFinalSongInPlaylist();
     
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
@@ -92,6 +90,8 @@ private:
     std::vector<int>         trackNumber;
     std::vector<std::string> duration;
     
+    void UpdateTrackID();
+    
     juce::TextEditor searchBar;
     juce::TextButton addButton{ "Add tracks to playlist" };
     
@@ -105,10 +105,10 @@ private:
 
 struct PlaylistComponent::TrackInformation
 {
-    const int          trackNumber;
-    const juce::String trackName;
-    const juce::String songDuration;
-    const juce::File   songFileLocation;
+    int          trackNumber;
+    juce::String trackName;
+    juce::String songDuration;
+    juce::File   songFileLocation;
 };
 
 //==============================================================================
@@ -119,20 +119,45 @@ public:
     TableImageButtonCustomComponent(PlaylistComponent& td)
         : owner (td)
     {
-        auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
-                                                        , BinaryData::play_pngSize);
-        auto transparent = juce::Colours::transparentBlack;
-        playButton.setImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
-        addAndMakeVisible(playButton);
+        addAndMakeVisible(button);
 
-        playButton.onClick = [this] { owner.RowPlayButtonClicked(row); };
+        button.onClick = [this] { if(ButtonPressed) ButtonPressed(row); };
     }
 
+    std::function<void(int)> ButtonPressed;
+    
+    void SetButtonImages( const bool resizeButtonNowToFitThisImage
+                        , const bool rescaleImagesWhenButtonSizeChanges
+                        , const bool preserveImageProportions
+                        , const juce::Image& normalImage_
+                        , const float imageOpacityWhenNormal
+                        , juce::Colour overlayColourWhenNormal
+                        , const juce::Image& overImage_
+                        , const float imageOpacityWhenOver
+                        , juce::Colour overlayColourWhenOver
+                        , const juce::Image& downImage_
+                        , const float imageOpacityWhenDown
+                        , juce::Colour overlayColourWhenDown)
+    {
+        button.setImages( resizeButtonNowToFitThisImage
+                        , rescaleImagesWhenButtonSizeChanges
+                        , preserveImageProportions
+                        , normalImage_
+                        , imageOpacityWhenNormal
+                        , overlayColourWhenNormal
+                        , overImage_
+                        , imageOpacityWhenOver
+                        , overlayColourWhenOver
+                        , downImage_
+                        , imageOpacityWhenDown
+                         , overlayColourWhenDown);
+    }
+    
     void resized() override
     {
-        playButton.setBoundsInset (juce::BorderSize<int> (2));
+        button.setBoundsInset(juce::BorderSize<int> (10));
     }
-
+    
     void setRowAndColumn (int newRow, int newColumn)
     {
         row      = newRow;
@@ -141,7 +166,7 @@ public:
 
 private:
     PlaylistComponent& owner;
-    juce::ImageButton playButton;
+    juce::ImageButton button;
     int row, columnId;
 };
 
