@@ -17,6 +17,7 @@
 class MainComponent
     : public juce::AudioAppComponent
     , private AudioPlayer::Listener
+    , private PlaylistComponent::Listener
 {
 public:
     //==============================================================================
@@ -39,8 +40,10 @@ private:
     void StreamFinished() override;
     void TransportStateChanged(const TransportState& state) override;
     
+    void PlayButtonClicked(const int& row) override;
+    
     void SkipBackward();
-    void LoadAndPlayTrack(PlaylistComponent::TrackInformation& fileToPlay);
+    void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
     
     juce::AudioFormatManager audioFormatManager;
     AudioPlayer              audioPlayer;
@@ -52,7 +55,6 @@ private:
     
     juce::TextButton         addButton;
     juce::TextButton         sidePanelButton;
-    juce::TextButton         loadButton;
     
     juce::ImageButton        playButton;
     juce::ImageButton        pauseButton;

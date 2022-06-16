@@ -29,7 +29,6 @@ const double AudioPlayer::getTransportPosition()
 void AudioPlayer::load(const juce::File& audioFile)
 {
     transportSource.stop();
-    transportSource.setSource(nullptr);
     
     auto* reader = formatManager.createReaderFor(audioFile);
     if (reader != nullptr)
