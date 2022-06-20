@@ -43,6 +43,8 @@ target_sources(APG
     PRIVATE
         source/AudioPlayer.cpp
         source/AudioPlayer.h
+        source/AudioThumbnailComp.cpp
+        source/AudioThumbnailComp.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h

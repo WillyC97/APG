@@ -1,9 +1,16 @@
 #include "AudioPlayer.h"
 
 AudioPlayer::AudioPlayer(juce::AudioFormatManager& _formatManager)
-: formatManager(_formatManager)
+: streamFinished(false)
+, formatManager(_formatManager)
+
 {
     transportSource.addChangeListener(this);
+}
+
+AudioPlayer::~AudioPlayer()
+{
+    transportSource.setSource(nullptr);
 }
 //==============================================================================
 void AudioPlayer::start()
@@ -14,6 +21,11 @@ void AudioPlayer::start()
 void AudioPlayer::stop()
 {
     transportSource.stop();
+}
+
+bool AudioPlayer::IsTransportPlaying()
+{
+    return transportSource.isPlaying();
 }
 
 void AudioPlayer::SetTransportPosition(const double newPos)
@@ -55,11 +67,10 @@ void AudioPlayer::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
     }
     
     transportSource.getNextAudioBlock(bufferToFill);
-    if (transportSource.hasStreamFinished())
-    {
-        listeners.call([=](auto &l) { l.StreamFinished(); });
+    
+    streamFinished = transportSource.hasStreamFinished();
+    if (streamFinished)
         transportSource.setPosition(0);
-    }
 }
 
 /** allows the source to release anything it no longer needs after playback has stopped */

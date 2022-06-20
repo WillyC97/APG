@@ -3,15 +3,20 @@
 
 //==============================================================================
 MainComponent::MainComponent()
-    : audioPlayer(audioFormatManager)
+    : thumbnailCache(1)
+    , audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
-//    , playPauseButton("PlayPause", juce::DrawableButton::ImageFitted)
     , state(TransportState::Stopped)
+    , thumbnailComp(std::make_unique<AudioThumbnailComp>( audioFormatManager
+                                                        , audioPlayer
+                                                        , thumbnailCache))
 {
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
+    
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
+    addAndMakeVisible(thumbnailComp.get());
     
     addButton.setButtonText("Add");
     addButton.onClick=[this]()
@@ -56,6 +61,8 @@ MainComponent::MainComponent()
     setSize (1000, 600);
     
     setAudioChannels(0, 2);
+    
+    startTimer(10);
 }
 
 MainComponent::~MainComponent()
@@ -64,6 +71,11 @@ MainComponent::~MainComponent()
     shutdownAudio();
 }
 
+void MainComponent::timerCallback()
+{
+    if (audioPlayer.streamFinished.load())
+        StreamFinished();
+}
 //==============================================================================
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -111,7 +123,7 @@ void MainComponent::resized()
     pauseButton.setBounds(250, 350, 50, 50);
     skipForwardButton.setBounds(100, 350, 40, 40);
     skipBackwardButton.setBounds(50, 350, 40, 40);
-//    playPauseButton.setBounds(100, 350, 50, 50);
+    thumbnailComp->setBounds(buttonBarBounds);
 }
 
 void MainComponent::StreamFinished()
@@ -174,6 +186,7 @@ void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& 
     DBG(filePath.getFullPathName());
     
     audioPlayer.load(filePath);
+    thumbnailComp->SetFile(filePath);
     audioPlayer.start();
     
     playlistComponent.SetLastTrackNoPlayed(trackNo);

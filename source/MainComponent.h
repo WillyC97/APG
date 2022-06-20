@@ -6,6 +6,7 @@
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
+#include "AudioThumbnailComp.h"
 #include "PlaylistComponent.h"
 #include "SidePanelWithBrowser.h"
 
@@ -16,13 +17,14 @@
 */
 class MainComponent
     : public juce::AudioAppComponent
+    , public juce::Timer
     , private AudioPlayer::Listener
     , private PlaylistComponent::Listener
 {
 public:
     //==============================================================================
     MainComponent();
-    ~MainComponent();
+    ~MainComponent() override;
     
     //==============================================================================
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
@@ -31,35 +33,41 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    void timerCallback() override;
 
+    juce::AudioThumbnailCache thumbnailCache;
+    
 private:
     //==============================================================================
     // Your private member variables go here...
     juce::Array<juce::File> getFiles();
     
-    void StreamFinished() override;
     void TransportStateChanged(const TransportState& state) override;
+    void StreamFinished();
     
     void PlayButtonClicked(const int& row) override;
     
     void SkipBackward();
     void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
     
-    juce::AudioFormatManager audioFormatManager;
-    AudioPlayer              audioPlayer;
-    
-    PlaylistComponent        playlistComponent;
-    juce::File               lastTrackPlayedDir;
+    AudioPlayer                audioPlayer;
+    std::unique_ptr<AudioThumbnailComp> thumbnailComp;
+    juce::AudioFormatManager   audioFormatManager;
+    juce::AudioTransportSource transportSource;
+
+    PlaylistComponent          playlistComponent;
+    juce::File                 lastTrackPlayedDir;
         
-    SidePanelWithBrowser     sidePanel;
+    SidePanelWithBrowser       sidePanel;
     
-    juce::TextButton         addButton;
-    juce::TextButton         sidePanelButton;
+    juce::TextButton           addButton;
+    juce::TextButton           sidePanelButton;
     
-    juce::ImageButton        playButton;
-    juce::ImageButton        pauseButton;
-    juce::ImageButton        skipForwardButton;
-    juce::ImageButton        skipBackwardButton;
+    juce::ImageButton          playButton;
+    juce::ImageButton          pauseButton;
+    juce::ImageButton          skipForwardButton;
+    juce::ImageButton          skipBackwardButton;
     
     TransportState state;
     
