@@ -3,15 +3,21 @@
 
 //==============================================================================
 MainComponent::MainComponent()
-    : audioPlayer(audioFormatManager)
+    : thumbnailCache(1)
+    , audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
-//    , playPauseButton("PlayPause", juce::DrawableButton::ImageFitted)
     , state(TransportState::Stopped)
+    , transportSlider(audioPlayer)
+    , thumbnailComp(std::make_unique<AudioThumbnailComp>( audioFormatManager
+                                                        , audioPlayer
+                                                        , thumbnailCache))
 {
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
+    
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
+    addAndMakeVisible(thumbnailComp.get());
     
     addButton.setButtonText("Add");
     addButton.onClick=[this]()
@@ -48,6 +54,7 @@ MainComponent::MainComponent()
     skipBackwardButton.onClick=[=](){ SkipBackward(); };
     addAndMakeVisible(skipBackwardButton);
     
+    addAndMakeVisible(transportSlider);
     
     sidePanelButton.setButtonText("Browse Files");
     sidePanelButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
@@ -56,6 +63,8 @@ MainComponent::MainComponent()
     setSize (1000, 600);
     
     setAudioChannels(0, 2);
+    
+    startTimer(10);
 }
 
 MainComponent::~MainComponent()
@@ -64,6 +73,11 @@ MainComponent::~MainComponent()
     shutdownAudio();
 }
 
+void MainComponent::timerCallback()
+{
+    if (audioPlayer.streamFinished.load())
+        StreamFinished();
+}
 //==============================================================================
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -91,27 +105,53 @@ void MainComponent::paint (juce::Graphics& g)
     
     auto totalBounds = getLocalBounds();
     auto panelWidth = totalBounds.proportionOfWidth(0.6);
-    totalBounds.removeFromRight(panelWidth);
     auto buttonBarBounds = totalBounds.removeFromBottom(90);
+    totalBounds.removeFromRight(panelWidth);
+
     g.setColour (juce::Colour(0xFF212121));
     g.fillRect(buttonBarBounds);
 }
 
 void MainComponent::resized()
 {
+    const auto buttonSize = 50;
+    const auto buttonGap  = 35;
+    
+    const auto transportMargin           = 13;
+    const auto transportBarBoundsSize    = 42;
+    const auto transportButtonBoundsSize = 35;
+
+    
     auto totalBounds = getLocalBounds();
-    auto panelWidth = totalBounds.proportionOfWidth(0.6);
-    auto playlistBounds = totalBounds.removeFromRight(panelWidth);
-    auto buttonBarBounds = totalBounds.removeFromBottom(90);
+    auto panelWidth  = totalBounds.proportionOfWidth(0.6);
+    
+    auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
+    auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
+                                  totalBounds.removeFromBottom(transportMargin);
+    auto playlistBounds         = totalBounds.removeFromRight(panelWidth);
+    
+    playButton.setBounds(transportButtonsBounds
+                        .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
+                        .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
+    
+    pauseButton.setBounds(transportButtonsBounds
+                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
+                         .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
+    
+    skipForwardButton.setBounds(transportButtonsBounds
+                               .withRight(transportButtonsBounds.getWidth() /2 + buttonGap + buttonSize)
+                               .withLeft(transportButtonsBounds.getWidth() / 2 + buttonGap));
+    
+    skipBackwardButton.setBounds(transportButtonsBounds
+                                .withRight(transportButtonsBounds.getWidth() /2 - buttonGap)
+                                .withLeft(transportButtonsBounds.getWidth() / 2 - buttonGap - buttonSize));
     
     addButton.setBounds(300, 350, 50, 50);
     sidePanelButton.setBounds(360, 350, 50, 50);
     playlistComponent.setBounds(playlistBounds);
-    playButton.setBounds(250, 350, 50, 50);
-    pauseButton.setBounds(250, 350, 50, 50);
-    skipForwardButton.setBounds(100, 350, 40, 40);
-    skipBackwardButton.setBounds(50, 350, 40, 40);
-//    playPauseButton.setBounds(100, 350, 50, 50);
+
+//    thumbnailComp->setBounds(transportBarBounds);
+    transportSlider.setBounds(transportBarBounds);
 }
 
 void MainComponent::StreamFinished()
@@ -174,6 +214,8 @@ void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& 
     DBG(filePath.getFullPathName());
     
     audioPlayer.load(filePath);
+    thumbnailComp->SetFile(filePath);
+    transportSlider.SetRange();
     audioPlayer.start();
     
     playlistComponent.SetLastTrackNoPlayed(trackNo);

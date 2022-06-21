@@ -43,12 +43,15 @@ target_sources(APG
     PRIVATE
         source/AudioPlayer.cpp
         source/AudioPlayer.h
+        source/AudioThumbnailComp.cpp
+        source/AudioThumbnailComp.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
         source/PlaylistComponent.cpp
         source/PlaylistComponent.h
-        source/SidePanelWithBrowser.h)
+        source/SidePanelWithBrowser.h
+        source/TransportSlider.h)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
