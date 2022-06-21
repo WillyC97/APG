@@ -114,19 +114,42 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
+    const auto buttonSize = 50;
+    const auto buttonGap  = 35;
+    
+    const auto transportMargin           = 13;
+    const auto transportBarBoundsSize    = 42;
+    const auto transportButtonBoundsSize = 35;
+
+    
     auto totalBounds = getLocalBounds();
-    auto panelWidth = totalBounds.proportionOfWidth(0.6);
-    auto transportBarBounds = totalBounds.removeFromBottom(42);
-    auto transortButtonsBounds = totalBounds.removeFromBottom(48);
-    auto playlistBounds = totalBounds.removeFromRight(panelWidth);
+    auto panelWidth  = totalBounds.proportionOfWidth(0.6);
+    
+    auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
+    auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
+                                  totalBounds.removeFromBottom(transportMargin);
+    auto playlistBounds         = totalBounds.removeFromRight(panelWidth);
+    
+    playButton.setBounds(transportButtonsBounds
+                        .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
+                        .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
+    
+    pauseButton.setBounds(transportButtonsBounds
+                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
+                         .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
+    
+    skipForwardButton.setBounds(transportButtonsBounds
+                               .withRight(transportButtonsBounds.getWidth() /2 + buttonGap + buttonSize)
+                               .withLeft(transportButtonsBounds.getWidth() / 2 + buttonGap));
+    
+    skipBackwardButton.setBounds(transportButtonsBounds
+                                .withRight(transportButtonsBounds.getWidth() /2 - buttonGap)
+                                .withLeft(transportButtonsBounds.getWidth() / 2 - buttonGap - buttonSize));
     
     addButton.setBounds(300, 350, 50, 50);
     sidePanelButton.setBounds(360, 350, 50, 50);
     playlistComponent.setBounds(playlistBounds);
-    playButton.setBounds(250, 350, 50, 50);
-    pauseButton.setBounds(250, 350, 50, 50);
-    skipForwardButton.setBounds(100, 350, 40, 40);
-    skipBackwardButton.setBounds(50, 350, 40, 40);
+
 //    thumbnailComp->setBounds(transportBarBounds);
     transportSlider.setBounds(transportBarBounds);
 }
