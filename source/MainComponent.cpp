@@ -7,6 +7,7 @@ MainComponent::MainComponent()
     , audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
     , state(TransportState::Stopped)
+    , transportSlider(audioPlayer)
     , thumbnailComp(std::make_unique<AudioThumbnailComp>( audioFormatManager
                                                         , audioPlayer
                                                         , thumbnailCache))
@@ -53,6 +54,7 @@ MainComponent::MainComponent()
     skipBackwardButton.onClick=[=](){ SkipBackward(); };
     addAndMakeVisible(skipBackwardButton);
     
+    addAndMakeVisible(transportSlider);
     
     sidePanelButton.setButtonText("Browse Files");
     sidePanelButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
@@ -103,8 +105,9 @@ void MainComponent::paint (juce::Graphics& g)
     
     auto totalBounds = getLocalBounds();
     auto panelWidth = totalBounds.proportionOfWidth(0.6);
-    totalBounds.removeFromRight(panelWidth);
     auto buttonBarBounds = totalBounds.removeFromBottom(90);
+    totalBounds.removeFromRight(panelWidth);
+
     g.setColour (juce::Colour(0xFF212121));
     g.fillRect(buttonBarBounds);
 }
@@ -113,8 +116,9 @@ void MainComponent::resized()
 {
     auto totalBounds = getLocalBounds();
     auto panelWidth = totalBounds.proportionOfWidth(0.6);
+    auto transportBarBounds = totalBounds.removeFromBottom(42);
+    auto transortButtonsBounds = totalBounds.removeFromBottom(48);
     auto playlistBounds = totalBounds.removeFromRight(panelWidth);
-    auto buttonBarBounds = totalBounds.removeFromBottom(90);
     
     addButton.setBounds(300, 350, 50, 50);
     sidePanelButton.setBounds(360, 350, 50, 50);
@@ -123,7 +127,8 @@ void MainComponent::resized()
     pauseButton.setBounds(250, 350, 50, 50);
     skipForwardButton.setBounds(100, 350, 40, 40);
     skipBackwardButton.setBounds(50, 350, 40, 40);
-    thumbnailComp->setBounds(buttonBarBounds);
+//    thumbnailComp->setBounds(transportBarBounds);
+    transportSlider.setBounds(transportBarBounds);
 }
 
 void MainComponent::StreamFinished()
@@ -187,6 +192,7 @@ void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& 
     
     audioPlayer.load(filePath);
     thumbnailComp->SetFile(filePath);
+    transportSlider.SetRange();
     audioPlayer.start();
     
     playlistComponent.SetLastTrackNoPlayed(trackNo);

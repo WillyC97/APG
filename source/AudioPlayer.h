@@ -16,6 +16,7 @@ public:
     void start();
     void stop();
     bool IsTransportPlaying();
+    const double GetLengthInSeconds();
     const double getTransportPosition();
     void SetTransportPosition(const double newPos);
     void load(const juce::File& audioFile);

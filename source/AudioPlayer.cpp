@@ -38,6 +38,11 @@ const double AudioPlayer::getTransportPosition()
     return transportSource.getCurrentPosition();
 }
 
+const double AudioPlayer::GetLengthInSeconds()
+{
+    return transportSource.getLengthInSeconds();
+}
+
 void AudioPlayer::load(const juce::File& audioFile)
 {
     transportSource.stop();

@@ -9,6 +9,7 @@
 #include "AudioThumbnailComp.h"
 #include "PlaylistComponent.h"
 #include "SidePanelWithBrowser.h"
+#include "TransportSlider.h"
 
 //==============================================================================
 /*
@@ -69,6 +70,8 @@ private:
     juce::ImageButton          skipForwardButton;
     juce::ImageButton          skipBackwardButton;
     
+    TransportSlider            transportSlider;
+        
     TransportState state;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
