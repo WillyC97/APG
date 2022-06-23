@@ -3,21 +3,19 @@
 
 //==============================================================================
 MainComponent::MainComponent()
-    : thumbnailCache(1)
-    , audioPlayer(audioFormatManager)
+    : audioPlayer(audioFormatManager)
     , playlistComponent(audioFormatManager)
     , state(TransportState::Stopped)
     , transportSlider(audioPlayer)
-    , thumbnailComp(std::make_unique<AudioThumbnailComp>( audioFormatManager
-                                                        , audioPlayer
-                                                        , thumbnailCache))
+    , waveFormView(std::make_unique<WaveformView>( audioFormatManager
+                                                 , audioPlayer))
 {
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
-    addAndMakeVisible(thumbnailComp.get());
+    addChildComponent(waveFormView.get());
     
     addButton.setButtonText("Add");
     addButton.onClick=[this]()
@@ -36,6 +34,8 @@ MainComponent::MainComponent()
                                                             , BinaryData::skip_forward_pngSize);
     auto skipImageBackward = juce::ImageCache::getFromMemory( BinaryData::skip_backward_png
                                                             , BinaryData::skip_backward_pngSize);
+    auto waveformImage     = juce::ImageCache::getFromMemory( BinaryData::waveform_png
+                                                            , BinaryData::waveform_pngSize);
 
     auto transparent = juce::Colours::transparentBlack;
     playButton.setImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
@@ -54,6 +54,11 @@ MainComponent::MainComponent()
     skipBackwardButton.onClick=[=](){ SkipBackward(); };
     addAndMakeVisible(skipBackwardButton);
     
+    waveformViewButton.setImages(false, true, true, waveformImage, 0.9f, transparent, waveformImage, 0.5f, transparent, waveformImage, 1.0f, transparent);
+    waveformViewButton.setClickingTogglesState(true);
+    waveformViewButton.onClick=[=](){ waveFormView->setVisible(!waveFormView->isShowing()); };
+    addAndMakeVisible(waveformViewButton);
+
     addAndMakeVisible(transportSlider);
     
     sidePanelButton.setButtonText("Browse Files");
@@ -128,6 +133,7 @@ void MainComponent::resized()
     auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
     auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
                                   totalBounds.removeFromBottom(transportMargin);
+    auto waveformBounds         = totalBounds;
     auto playlistBounds         = totalBounds.removeFromRight(panelWidth);
     
     playButton.setBounds(transportButtonsBounds
@@ -146,11 +152,16 @@ void MainComponent::resized()
                                 .withRight(transportButtonsBounds.getWidth() /2 - buttonGap)
                                 .withLeft(transportButtonsBounds.getWidth() / 2 - buttonGap - buttonSize));
     
+    waveformViewButton.setBounds(transportButtonsBounds
+                                .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
+    
     addButton.setBounds(300, 350, 50, 50);
+    addButton.toBack();
     sidePanelButton.setBounds(360, 350, 50, 50);
+    sidePanelButton.toBack();
     playlistComponent.setBounds(playlistBounds);
 
-//    thumbnailComp->setBounds(transportBarBounds);
+    waveFormView->setBounds(waveformBounds);
     transportSlider.setBounds(transportBarBounds);
 }
 
@@ -214,7 +225,7 @@ void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& 
     DBG(filePath.getFullPathName());
     
     audioPlayer.load(filePath);
-    thumbnailComp->SetFile(filePath);
+    waveFormView->SetFile(filePath);
     transportSlider.SetRange();
     audioPlayer.start();
     

@@ -10,6 +10,7 @@
 #include "PlaylistComponent.h"
 #include "SidePanelWithBrowser.h"
 #include "TransportSlider.h"
+#include "WaveformView.h"
 
 //==============================================================================
 /*
@@ -36,8 +37,6 @@ public:
     void resized() override;
     
     void timerCallback() override;
-
-    juce::AudioThumbnailCache thumbnailCache;
     
 private:
     //==============================================================================
@@ -52,25 +51,26 @@ private:
     void SkipBackward();
     void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
     
-    AudioPlayer                audioPlayer;
-    std::unique_ptr<AudioThumbnailComp> thumbnailComp;
-    juce::AudioFormatManager   audioFormatManager;
-    juce::AudioTransportSource transportSource;
+    AudioPlayer                   audioPlayer;
+    std::unique_ptr<WaveformView> waveFormView;
+    juce::AudioFormatManager      audioFormatManager;
+    juce::AudioTransportSource    transportSource;
 
-    PlaylistComponent          playlistComponent;
-    juce::File                 lastTrackPlayedDir;
+    PlaylistComponent             playlistComponent;
+    juce::File                    lastTrackPlayedDir;
         
-    SidePanelWithBrowser       sidePanel;
+    SidePanelWithBrowser          sidePanel;
     
-    juce::TextButton           addButton;
-    juce::TextButton           sidePanelButton;
+    juce::TextButton              addButton;
+    juce::TextButton              sidePanelButton;
     
-    juce::ImageButton          playButton;
-    juce::ImageButton          pauseButton;
-    juce::ImageButton          skipForwardButton;
-    juce::ImageButton          skipBackwardButton;
+    juce::ImageButton             playButton;
+    juce::ImageButton             pauseButton;
+    juce::ImageButton             skipForwardButton;
+    juce::ImageButton             skipBackwardButton;
+    juce::ImageButton             waveformViewButton;
     
-    TransportSlider            transportSlider;
+    TransportSlider               transportSlider;
         
     TransportState state;
     

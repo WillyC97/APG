@@ -51,7 +51,10 @@ target_sources(APG
         source/PlaylistComponent.cpp
         source/PlaylistComponent.h
         source/SidePanelWithBrowser.h
-        source/TransportSlider.h)
+        source/TransportSlider.h
+        source/WaveformView.cpp
+        source/WaveformView.h
+      )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
@@ -85,7 +88,8 @@ juce_add_binary_data(BinaryData
           resources/play.png
           resources/pause.png
           resources/skip_forward.png
-          resources/skip_backward.png)
+          resources/skip_backward.png
+          resources/waveform.png)
 
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_gui_extra` module. Inter-module
