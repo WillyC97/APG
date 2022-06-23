@@ -2,9 +2,25 @@
 #include "BinaryData.h"
 
 //==============================================================================
+namespace
+{
+    const juce::File UserAppData = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
+
+    juce::File settingsXmlLocation()
+    {
+        #ifdef JUCE_MAC
+            juce::File fullPath = UserAppData.getChildFile("Application Support/APG/Playlist.xml");
+        #elif JUCE_WINDOWS
+            File fullPath = UserAppData.getChildFile("APG/Playlist.xml");
+        #endif
+            fullPath.create();
+        return fullPath;
+    }
+}
+
 MainComponent::MainComponent()
     : audioPlayer(audioFormatManager)
-    , playlistComponent(audioFormatManager)
+    , playlistComponent(audioFormatManager, settingsXmlLocation())
     , state(TransportState::Stopped)
     , transportSlider(audioPlayer)
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
@@ -167,13 +183,12 @@ void MainComponent::resized()
 
 void MainComponent::StreamFinished()
 {
-    if (playlistComponent.tracks.size() > 1)
+    if (playlistComponent.getNumRows() > 1)
     {
-        auto finalSongInPlaylistTrackNo = playlistComponent.getFinalSongInPlaylist()->trackNumber;
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
-        if (finalSongInPlaylistTrackNo != lastSongPlayedTrackNo)
+        if (playlistComponent.getNumRows() != lastSongPlayedTrackNo)
         {
-            auto track = playlistComponent.tracks[unsigned(lastSongPlayedTrackNo)];
+            auto track = playlistComponent.GetTrack(lastSongPlayedTrackNo);
             LoadAndPlayTrack(*track);
         }
     }
@@ -211,17 +226,14 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
 
 void MainComponent::PlayButtonClicked(const int &row)
 {
-    if (!playlistComponent.tracks.isEmpty())
-    {
-        auto selectedTrack = playlistComponent.tracks[unsigned(row)];
+        auto selectedTrack = playlistComponent.GetTrack(row);
         LoadAndPlayTrack(*selectedTrack);
-    }
 }
 
-void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& track)
+void MainComponent::LoadAndPlayTrack(const juce::XmlElement& track)
 {
-    auto filePath = track.songFileLocation;
-    auto trackNo  = track.trackNumber;
+    juce::File filePath = track.getStringAttribute("FileLocation");
+    auto trackNo  = track.getStringAttribute("No.").getIntValue();
     DBG(filePath.getFullPathName());
     
     audioPlayer.load(filePath);
@@ -238,12 +250,11 @@ void MainComponent::SkipBackward()
         audioPlayer.SetTransportPosition(0.0);
     else
     {
-        if (!playlistComponent.tracks.isEmpty())
+        if (!(playlistComponent.getNumRows() == 0))
         {
-            auto firstSongInPlaylistTrackNo = playlistComponent.GetFirstSongInPlaylist()->trackNumber;
-            auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
-            if (firstSongInPlaylistTrackNo != lastSongPlayedTrackNo)
-                LoadAndPlayTrack(*playlistComponent.tracks[unsigned(lastSongPlayedTrackNo) - 2]);
+            auto lastSongPlayedTrackNo = playlistComponent.GetLastTrackNoPlayed();
+            if (lastSongPlayedTrackNo != 1)
+                LoadAndPlayTrack(*playlistComponent.GetTrack(lastSongPlayedTrackNo - 2));
         }
     }
 }

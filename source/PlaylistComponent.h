@@ -3,8 +3,6 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include <vector>
-//#include <string>
-//#include <fstream>
 
 class PlaylistComponent
     : public juce::Component
@@ -12,11 +10,12 @@ class PlaylistComponent
     , public juce::Button::Listener
 {
 public:
-    PlaylistComponent(juce::AudioFormatManager& _formatManager);
-    
-    struct TrackInformation;
+    //==============================================================================
+    PlaylistComponent( juce::AudioFormatManager& _formatManager
+                     , const juce::File&         _playlistXmlFile);
+    //==============================================================================
     class Listener;
-
+    //==============================================================================
    /** fills the component's background and draws text */
     void paint(juce::Graphics&) override;
 
@@ -46,33 +45,29 @@ public:
                                       , int columnId
                                       , bool isRowSelected
                                       , Component* existingComponentToUpdate) override;
+    //==============================================================================
+    int getColumnAutoSizeWidth(int columnId) override;
+    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
+    //==============================================================================
 
-    /** converts seconds into minutes with seconds in this etc(2:30) format */
-    std::string secondsToMins(double seconds);
-
-    /** triggers when cell is clicked */
-    void cellClicked( int rowNumber
-                    , int columnId
-                    , const juce::MouseEvent&) override;
-
+//    /** triggers when cell is clicked */
+//    void cellClicked( int rowNumber
+//                    , int columnId
+//                    , const juce::MouseEvent&) override;
+    
+//    /** triggers when a different row is selected */
+//    void selectedRowsChanged(int lastRowSelected) override;
+    
     /** triggers when button clicked */
-    void buttonClicked(juce::Button* button) override;
-
+    void buttonClicked(juce::Button* button) override { juce::ignoreUnused(button); }
+    //==============================================================================
     std::vector<std::string> trackTitles;
-    juce::OwnedArray<PlaylistComponent::TrackInformation> tracks;
-    static unsigned int selectedRowNo;
-
-    /** triggers when a different row is selected */
-    void selectedRowsChanged(int lastRowSelected) override;
-
-    /** records to a txt file what tracks are loaded */
-    void savePlaylist(std::string playlistTracks);
 
     /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
     
-    PlaylistComponent::TrackInformation* GetFirstSongInPlaylist();
-    PlaylistComponent::TrackInformation* getFinalSongInPlaylist();
+    juce::XmlElement* GetTrack(int index);
+    juce::XmlElement* GetFirstSongInPlaylist();
     
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
@@ -82,15 +77,27 @@ public:
     void AddListener   (Listener &l) { listeners.add(&l); }
     void RemoveListener(Listener &l) { listeners.remove(&l); }
     
+    void LoadPlaylist(const juce::File& xmlFile);
+    //==============================================================================
 private:
+    class PlaylistDataSorter;
+    
     juce::AudioFormatManager& formatManager;
+    const juce::File          playlistXmlFile;
+    juce::Font font           { 14.0f };
     
     juce::TableListBox tableComponent;
     
-    std::vector<int>         trackNumber;
+    std::unique_ptr<juce::XmlElement> playlistData;
+    juce::XmlElement* columnList    = nullptr;
+    juce::XmlElement* dataList      = nullptr;
+    int numRows = 0;
+    
     std::vector<std::string> duration;
     
     void UpdateTrackID();
+    
+    std::string secondsToMins(double seconds);
     
     juce::TextEditor searchBar;
     juce::TextButton addButton{ "Add tracks to playlist" };
@@ -103,27 +110,13 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistComponent)
 };
 
-struct PlaylistComponent::TrackInformation
-{
-    int          trackNumber;
-    juce::String trackName;
-    juce::String songDuration;
-    juce::File   songFileLocation;
-};
-
 //==============================================================================
 class TableImageButtonCustomComponent
     : public juce::Component
 {
 public:
-    TableImageButtonCustomComponent(PlaylistComponent& td)
-        : owner (td)
-    {
-        addAndMakeVisible(button);
-
-        button.onClick = [this] { if(ButtonPressed) ButtonPressed(row); };
-    }
-
+    TableImageButtonCustomComponent();
+    
     std::function<void(int)> ButtonPressed;
     
     void SetButtonImages( const bool resizeButtonNowToFitThisImage
@@ -137,37 +130,29 @@ public:
                         , juce::Colour overlayColourWhenOver
                         , const juce::Image& downImage_
                         , const float imageOpacityWhenDown
-                        , juce::Colour overlayColourWhenDown)
-    {
-        button.setImages( resizeButtonNowToFitThisImage
-                        , rescaleImagesWhenButtonSizeChanges
-                        , preserveImageProportions
-                        , normalImage_
-                        , imageOpacityWhenNormal
-                        , overlayColourWhenNormal
-                        , overImage_
-                        , imageOpacityWhenOver
-                        , overlayColourWhenOver
-                        , downImage_
-                        , imageOpacityWhenDown
-                         , overlayColourWhenDown);
-    }
-    
-    void resized() override
-    {
-        button.setBoundsInset(juce::BorderSize<int> (10));
-    }
-    
-    void setRowAndColumn (int newRow, int newColumn)
-    {
-        row      = newRow;
-        columnId = newColumn;
-    }
+                        , juce::Colour overlayColourWhenDown);
 
+    
+    void resized() override;
+
+    void setRowAndColumn (int newRow, int newColumn);
+    //==============================================================================
 private:
-    PlaylistComponent& owner;
     juce::ImageButton button;
     int row, columnId;
+};
+
+//==============================================================================
+class PlaylistComponent::PlaylistDataSorter
+{
+public:
+    PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards);
+
+    int compareElements (juce::XmlElement* first, juce::XmlElement* second) const;
+
+private:
+    juce::String attributeToSort;
+    int direction;
 };
 
 //==============================================================================

@@ -4,16 +4,13 @@
 #include "PlaylistComponent.h"
 #include "BinaryData.h"
 
-unsigned int PlaylistComponent::selectedRowNo;
-
-PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
+PlaylistComponent::PlaylistComponent( juce::AudioFormatManager& _formatManager
+                                    , const juce::File&         _playlistXmlFile)
 : formatManager(_formatManager)
+, playlistXmlFile(_playlistXmlFile)
 {
-    trackNumber.push_back(0);
-    totalTracksInPlaylist = 1;
-
-    tableComponent.getHeader().addColumn("#", 1, 50);
-    tableComponent.getHeader().addColumn("Track title", 2, 200);
+    tableComponent.getHeader().addColumn("No.", 1, 50);
+    tableComponent.getHeader().addColumn("Title", 2, 200);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
     tableComponent.getHeader().addColumn("Play", 4, 50, 50, 50);
     tableComponent.getHeader().addColumn("Remove", 5, 50);
@@ -29,7 +26,6 @@ PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
     addButton.addListener(this);
 
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::antiquewhite);
-
     searchBar.onTextChange = [this]
     {
         int rowCount = 0;
@@ -47,35 +43,16 @@ PlaylistComponent::PlaylistComponent(juce::AudioFormatManager& _formatManager)
     };
 
     formatManager.registerBasicFormats();
-//    std::string line;
-//    std::ifstream playlistFile("playlist.txt");
-//    if (playlistFile.is_open())
-//    {
-//        while (getline(playlistFile, line))
-//        {
-//            juce::String path = line;
-//            juce::File id(path);
-//            insertTracks(id);
-//        }
-//        playlistFile.close();
-//    }
-  
+    LoadPlaylist(playlistXmlFile);
 }
-
-void PlaylistComponent::paint(juce::Graphics& g)
+//==============================================================================
+void PlaylistComponent::paint(juce::Graphics& /*g*/)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
-
-       You should replace everything in this method with your own
-       drawing code..
-    */
-
     getLookAndFeel().setColour(juce::TableListBox::backgroundColourId, juce::Colour(0xFF041f18));
     getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF122a2d));
     getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId, juce::Colours::lightcyan);
 }
-
+//-----------------------------------------------------------------------------
 void PlaylistComponent::resized()
 {
     auto totalArea = getLocalBounds();
@@ -85,13 +62,8 @@ void PlaylistComponent::resized()
     addButton.setBounds(rowArea);
     tableComponent.setBounds(totalArea);
 }
-
-int PlaylistComponent::getNumRows()
-{
-    return tracks.size();
-}
-
-void PlaylistComponent::paintRowBackground(juce::Graphics& g, int rowNumber, int width, int height, bool rowIsSelected)
+//-----------------------------------------------------------------------------
+void PlaylistComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
 {
     if (rowIsSelected)
     {
@@ -101,38 +73,35 @@ void PlaylistComponent::paintRowBackground(juce::Graphics& g, int rowNumber, int
         g.fillAll(juce::Colour(0xFF0b3839));
     }
 }
+//-----------------------------------------------------------------------------
 void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    if (rowNumber < getNumRows())
+    g.setColour (rowIsSelected ? juce::Colours::darkblue : getLookAndFeel().findColour (juce::ListBox::textColourId));
+
+    if (auto* rowElement = dataList->getChildElement(rowNumber))
     {
-        g.setColour(juce::Colours::white);
+        auto columnName = tableComponent.getHeader().getColumnName(columnId);
+        auto justification = columnName == "No." ? juce::Justification::centred : juce::Justification::centredLeft;
+        auto text = rowElement->getStringAttribute(columnName);
 
-        if (columnId == 1)
-        {
-            g.drawText(juce::String(tracks[rowNumber]->trackNumber), 1, 0, width, height, juce::Justification::centred, true);
-        }
-        if (columnId == 2)
-        {
-            g.drawText(tracks[rowNumber]->trackName, 1, 0, width, height, juce::Justification::centredLeft, true);
-        }
-        if (columnId == 3)
-        {
-            g.drawText(tracks[rowNumber]->songDuration, 1, 0, width, height, juce::Justification::centredLeft, true);
-        }
+        g.drawText (text, 2, 0, width - 4, height, justification, true);
     }
-}
 
+    g.setColour (getLookAndFeel().findColour (juce::ListBox::backgroundColourId));
+    g.fillRect (width - 1, 0, 1, height);
+}
+//-----------------------------------------------------------------------------
 juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
                                                            , int columnId
-                                                           , bool isRowSelected
+                                                           , bool /*isRowSelected*/
                                                            , juce::Component* existingComponentToUpdate)
 {
-    if (columnId == 4)  // [8]
+    if (columnId == 4)
     {
         auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
         
         if (playButton == nullptr)
-            playButton = new TableImageButtonCustomComponent (*this);
+            playButton = new TableImageButtonCustomComponent();
         
         auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                         , BinaryData::play_pngSize);
@@ -147,12 +116,12 @@ juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
         return playButton;
     }
     
-    if (columnId == 5)  // [8]
+    if (columnId == 5)
     {
         auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
         if (deleteButton == nullptr)
-            deleteButton = new TableImageButtonCustomComponent (*this);
+            deleteButton = new TableImageButtonCustomComponent();
         
         auto deleteButtonImage = juce::ImageCache::getFromMemory( BinaryData::cross_png
                                                                 , BinaryData::cross_pngSize);
@@ -162,81 +131,96 @@ juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
         deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
         deleteButton->ButtonPressed = [=] (int row)
         {
-            tracks.remove(row);
+            dataList->removeChildElement(dataList->getChildElement(row), true);
             totalTracksInPlaylist -= 1;
+            numRows -= 1;
             UpdateTrackID();
+            playlistData->writeTo(playlistXmlFile);
             tableComponent.updateContent();
+            tableComponent.repaint();
         };
         return deleteButton;
     }
 
     return nullptr;
 }
+//-----------------------------------------------------------------------------
+int PlaylistComponent::getColumnAutoSizeWidth (int columnId)
+{
+    if (columnId == 9)
+        return 50;
 
+    int widest = 32;
+
+    for (auto i = getNumRows(); --i >= 0;)
+    {
+        if (auto* rowElement = dataList->getChildElement (i))
+        {
+            auto text = rowElement->getStringAttribute (tableComponent.getHeader().getColumnName(columnId));
+
+            widest = juce::jmax (widest, font.getStringWidth (text));
+        }
+    }
+
+    return widest + 8;
+}
+//==============================================================================
+int PlaylistComponent::getNumRows()
+{
+    return numRows;
+}
+//-----------------------------------------------------------------------------
+void PlaylistComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
+{
+    if (newSortColumnId != 0)
+    {
+        PlaylistDataSorter sorter(tableComponent.getHeader().getColumnName(newSortColumnId), isForwards);
+        dataList->sortChildElements (sorter);
+        UpdateTrackID();
+        playlistData->writeTo(playlistXmlFile);
+        tableComponent.updateContent();
+    }
+}
+//-----------------------------------------------------------------------------
 void PlaylistComponent::UpdateTrackID()
 {
-    for(int i = 0; i < tracks.size(); ++i)
-        tracks[i]->trackNumber = i + 1;
+    for(int i = 0; i < numRows; ++i)
+        dataList->getChildElement(i)->setAttribute ("No.", i + 1);
 }
-
-void PlaylistComponent::buttonClicked(juce::Button* button)
-{}
-//        juce::FileChooser chooser{ "" };
-//        if (chooser.browseForMultipleFilesToOpen())
-//        {
-//            juce::Array<juce::File> ids = chooser.getResults();
-//            for (File id : ids)
-//            {
-////                savePlaylist(id.getFullPathName().toStdString());
-//                insertTracks(id);
-//            }
-//        }
-//    tableComponent.updateContent();
-//}
-
-std::string PlaylistComponent::secondsToMins(double seconds)
+//==============================================================================
+juce::XmlElement* PlaylistComponent::GetTrack(int index)
 {
-    int secs = int(seconds) % 60;
-    int mins = ( seconds - (secs)) / 60;
-    std::string songLength = std::to_string(mins) + ":" + std::to_string(secs);
-    return songLength;
+    return dataList->getChildElement(index);
 }
-
-void PlaylistComponent::cellClicked(int rowNumber, int columnId, const juce::MouseEvent&)
+//-----------------------------------------------------------------------------
+juce::XmlElement* PlaylistComponent::GetFirstSongInPlaylist()
 {
-    DBG(rowNumber);
-    selectedRowNo = trackNumber[rowNumber];
-    tableComponent.repaint();
+    return dataList->getFirstChildElement();
 }
-
-void PlaylistComponent::selectedRowsChanged(int lastRowSelected)
-{
-    selectedRowNo = trackNumber[lastRowSelected];
-    tableComponent.repaint();
-}
-
-void PlaylistComponent::savePlaylist(std::string playlistTracks)
-{
-//    std::ofstream outlog("playlist.txt", std::ofstream::app);
-//    outlog << playlistTracks << std::endl;
-//    outlog.close();
-}
-
-PlaylistComponent::TrackInformation* PlaylistComponent::getFinalSongInPlaylist()
-{
-    return tracks.getLast();
-}
-
-PlaylistComponent::TrackInformation* PlaylistComponent::GetFirstSongInPlaylist()
-{
-    return tracks.getFirst();
-}
-
+//==============================================================================
 void PlaylistComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
+//-----------------------------------------------------------------------------
+std::string PlaylistComponent::secondsToMins(double seconds)
+{
+    int secs = int(seconds) % 60;
+    int mins = (int(seconds) - (secs)) / 60;
+    std::string songLength = std::to_string(mins) + ":" + std::to_string(secs);
+    return songLength;
+}
+//==============================================================================
+void PlaylistComponent::LoadPlaylist(const juce::File &xmlFile)
+{
+    if (xmlFile == juce::File() || ! xmlFile.exists())
+        return;
 
+    playlistData = juce::XmlDocument::parse(xmlFile);
+    dataList     = playlistData->getChildByName("DATA");
+    numRows      = dataList->getNumChildElements();
+}
+//-----------------------------------------------------------------------------
 void PlaylistComponent::insertTracks(juce::File& audioFile)
 {
     std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
@@ -248,15 +232,88 @@ void PlaylistComponent::insertTracks(juce::File& audioFile)
         auto title         = audioFile.getFileNameWithoutExtension().toStdString();
         auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
         auto trackDuration = secondsToMins(lengthInSamples/sampleRate);
-
-        tracks.add(new TrackInformation { totalTracksInPlaylist
-                                        , title
-                                        , trackDuration
-                                        , audioFile});
+        totalTracksInPlaylist = getNumRows() + 1;
         
-        trackNumber.push_back(totalTracksInPlaylist);
+        std::unique_ptr<juce::XmlElement> track;
+        track = std::make_unique<juce::XmlElement>("TRACK");
+        track->setAttribute("No.", totalTracksInPlaylist);
+        track->setAttribute("Title", title);
+        track->setAttribute("Duration", trackDuration);
+        track->setAttribute("FileLocation", audioFile.getFullPathName());
+        dataList    ->addChildElement(track.release());
+        playlistData->writeTo(playlistXmlFile);
+        track.reset();
+        
         trackTitles.push_back(title);
-        totalTracksInPlaylist += 1;
+        numRows += 1;
     }
     tableComponent.updateContent();
+    tableComponent.repaint();
 }
+
+//==============================================================================
+//Mark - TableImageButtonCustomComponent
+TableImageButtonCustomComponent::TableImageButtonCustomComponent()
+{
+    addAndMakeVisible(button);
+    button.onClick = [this] { if(ButtonPressed) ButtonPressed(row); };
+}
+
+void TableImageButtonCustomComponent::SetButtonImages( const bool resizeButtonNowToFitThisImage
+                                                     , const bool rescaleImagesWhenButtonSizeChanges
+                                                     , const bool preserveImageProportions
+                                                     , const juce::Image& normalImage_
+                                                     , const float imageOpacityWhenNormal
+                                                     , juce::Colour overlayColourWhenNormal
+                                                     , const juce::Image& overImage_
+                                                     , const float imageOpacityWhenOver
+                                                     , juce::Colour overlayColourWhenOver
+                                                     , const juce::Image& downImage_
+                                                     , const float imageOpacityWhenDown
+                                                     , juce::Colour overlayColourWhenDown)
+{
+    button.setImages( resizeButtonNowToFitThisImage
+                    , rescaleImagesWhenButtonSizeChanges
+                    , preserveImageProportions
+                    , normalImage_
+                    , imageOpacityWhenNormal
+                    , overlayColourWhenNormal
+                    , overImage_
+                    , imageOpacityWhenOver
+                    , overlayColourWhenOver
+                    , downImage_
+                    , imageOpacityWhenDown
+                    , overlayColourWhenDown);
+}
+//-----------------------------------------------------------------------------
+void TableImageButtonCustomComponent::resized()
+{
+    button.setBoundsInset(juce::BorderSize<int> (10));
+}
+//-----------------------------------------------------------------------------
+void TableImageButtonCustomComponent::setRowAndColumn (int newRow, int newColumn)
+{
+    row      = newRow;
+    columnId = newColumn;
+}
+
+//==============================================================================
+//Mark - PlaylistDataSorter
+
+PlaylistComponent::PlaylistDataSorter::PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards)
+    : attributeToSort(attributeToSortBy)
+    , direction(forwards ? 1 : -1)
+{}
+
+int PlaylistComponent::PlaylistDataSorter::compareElements(juce::XmlElement* first, juce::XmlElement* second) const
+{
+    auto result = first->getStringAttribute (attributeToSort)
+                        .compareNatural (second->getStringAttribute (attributeToSort));
+
+    if (result == 0)
+        result = first->getStringAttribute ("ID")
+                       .compareNatural (second->getStringAttribute ("ID"));
+
+    return direction * result;
+}
+

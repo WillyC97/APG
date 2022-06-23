@@ -49,7 +49,7 @@ private:
     void PlayButtonClicked(const int& row) override;
     
     void SkipBackward();
-    void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
+    void LoadAndPlayTrack(const juce::XmlElement& track);
     
     AudioPlayer                   audioPlayer;
     std::unique_ptr<WaveformView> waveFormView;
