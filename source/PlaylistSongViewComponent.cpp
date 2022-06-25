@@ -1,13 +1,11 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <algorithm>
 
-#include "PlaylistComponent.h"
+#include "PlaylistSongViewComponent.h"
 #include "BinaryData.h"
 
-PlaylistComponent::PlaylistComponent( juce::AudioFormatManager& _formatManager
-                                    , const juce::File&         _playlistXmlFile)
+PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
-, playlistXmlFile(_playlistXmlFile)
 {
     tableComponent.getHeader().addColumn("No.", 1, 50);
     tableComponent.getHeader().addColumn("Title", 2, 200);
@@ -43,17 +41,16 @@ PlaylistComponent::PlaylistComponent( juce::AudioFormatManager& _formatManager
     };
 
     formatManager.registerBasicFormats();
-    LoadPlaylist(playlistXmlFile);
 }
 //==============================================================================
-void PlaylistComponent::paint(juce::Graphics& /*g*/)
+void PlaylistSongViewComponent::paint(juce::Graphics& /*g*/)
 {
     getLookAndFeel().setColour(juce::TableListBox::backgroundColourId, juce::Colour(0xFF041f18));
     getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF122a2d));
     getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId, juce::Colours::lightcyan);
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::resized()
+void PlaylistSongViewComponent::resized()
 {
     auto totalArea = getLocalBounds();
     auto rowHeight = totalArea.proportionOfHeight(0.1);
@@ -63,7 +60,7 @@ void PlaylistComponent::resized()
     tableComponent.setBounds(totalArea);
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
+void PlaylistSongViewComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
 {
     if (rowIsSelected)
     {
@@ -74,7 +71,7 @@ void PlaylistComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/,
     }
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
     g.setColour (rowIsSelected ? juce::Colours::darkblue : getLookAndFeel().findColour (juce::ListBox::textColourId));
 
@@ -91,7 +88,7 @@ void PlaylistComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId
     g.fillRect (width - 1, 0, 1, height);
 }
 //-----------------------------------------------------------------------------
-juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
+juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumber
                                                            , int columnId
                                                            , bool /*isRowSelected*/
                                                            , juce::Component* existingComponentToUpdate)
@@ -145,7 +142,7 @@ juce::Component* PlaylistComponent::refreshComponentForCell( int rowNumber
     return nullptr;
 }
 //-----------------------------------------------------------------------------
-int PlaylistComponent::getColumnAutoSizeWidth (int columnId)
+int PlaylistSongViewComponent::getColumnAutoSizeWidth (int columnId)
 {
     if (columnId == 9)
         return 50;
@@ -165,12 +162,12 @@ int PlaylistComponent::getColumnAutoSizeWidth (int columnId)
     return widest + 8;
 }
 //==============================================================================
-int PlaylistComponent::getNumRows()
+int PlaylistSongViewComponent::getNumRows()
 {
     return numRows;
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
+void PlaylistSongViewComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
 {
     if (newSortColumnId != 0)
     {
@@ -182,28 +179,28 @@ void PlaylistComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
     }
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::UpdateTrackID()
+void PlaylistSongViewComponent::UpdateTrackID()
 {
     for(int i = 0; i < numRows; ++i)
         dataList->getChildElement(i)->setAttribute ("No.", i + 1);
 }
 //==============================================================================
-juce::XmlElement* PlaylistComponent::GetTrack(int index)
+juce::XmlElement* PlaylistSongViewComponent::GetTrack(int index)
 {
     return dataList->getChildElement(index);
 }
 //-----------------------------------------------------------------------------
-juce::XmlElement* PlaylistComponent::GetFirstSongInPlaylist()
+juce::XmlElement* PlaylistSongViewComponent::GetFirstSongInPlaylist()
 {
     return dataList->getFirstChildElement();
 }
 //==============================================================================
-void PlaylistComponent::RowPlayButtonClicked(const int& row)
+void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
 //-----------------------------------------------------------------------------
-std::string PlaylistComponent::secondsToMins(double seconds)
+std::string PlaylistSongViewComponent::secondsToMins(double seconds)
 {
     int secs = int(seconds) % 60;
     int mins = (int(seconds) - (secs)) / 60;
@@ -211,17 +208,20 @@ std::string PlaylistComponent::secondsToMins(double seconds)
     return songLength;
 }
 //==============================================================================
-void PlaylistComponent::LoadPlaylist(const juce::File &xmlFile)
+void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
 {
     if (xmlFile == juce::File() || ! xmlFile.exists())
         return;
 
+    playlistXmlFile = xmlFile;
     playlistData = juce::XmlDocument::parse(xmlFile);
     dataList     = playlistData->getChildByName("DATA");
     numRows      = dataList->getNumChildElements();
+    tableComponent.updateContent();
+    repaint();
 }
 //-----------------------------------------------------------------------------
-void PlaylistComponent::insertTracks(juce::File& audioFile)
+void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
 {
     std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
     if (reader)
@@ -300,12 +300,12 @@ void TableImageButtonCustomComponent::setRowAndColumn (int newRow, int newColumn
 //==============================================================================
 //Mark - PlaylistDataSorter
 
-PlaylistComponent::PlaylistDataSorter::PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards)
+PlaylistSongViewComponent::PlaylistDataSorter::PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards)
     : attributeToSort(attributeToSortBy)
     , direction(forwards ? 1 : -1)
 {}
 
-int PlaylistComponent::PlaylistDataSorter::compareElements(juce::XmlElement* first, juce::XmlElement* second) const
+int PlaylistSongViewComponent::PlaylistDataSorter::compareElements(juce::XmlElement* first, juce::XmlElement* second) const
 {
     auto result = first->getStringAttribute (attributeToSort)
                         .compareNatural (second->getStringAttribute (attributeToSort));

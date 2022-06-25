@@ -4,15 +4,14 @@
 
 #include <vector>
 
-class PlaylistComponent
+class PlaylistSongViewComponent
     : public juce::Component
     , public juce::TableListBoxModel
     , public juce::Button::Listener
 {
 public:
     //==============================================================================
-    PlaylistComponent( juce::AudioFormatManager& _formatManager
-                     , const juce::File&         _playlistXmlFile);
+    PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager);
     //==============================================================================
     class Listener;
     //==============================================================================
@@ -83,7 +82,7 @@ private:
     class PlaylistDataSorter;
     
     juce::AudioFormatManager& formatManager;
-    const juce::File          playlistXmlFile;
+    juce::File                playlistXmlFile;
     juce::Font font           { 14.0f };
     
     juce::TableListBox tableComponent;
@@ -107,7 +106,7 @@ private:
     
     juce::ListenerList<Listener> listeners;
                               
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistSongViewComponent)
 };
 
 //==============================================================================
@@ -143,7 +142,7 @@ private:
 };
 
 //==============================================================================
-class PlaylistComponent::PlaylistDataSorter
+class PlaylistSongViewComponent::PlaylistDataSorter
 {
 public:
     PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards);
@@ -156,7 +155,7 @@ private:
 };
 
 //==============================================================================
-class PlaylistComponent::Listener
+class PlaylistSongViewComponent::Listener
 {
 public:
     virtual ~Listener() = default;

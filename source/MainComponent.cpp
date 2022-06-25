@@ -2,25 +2,9 @@
 #include "BinaryData.h"
 
 //==============================================================================
-namespace
-{
-    const juce::File UserAppData = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
-
-    juce::File settingsXmlLocation()
-    {
-        #ifdef JUCE_MAC
-            juce::File fullPath = UserAppData.getChildFile("Application Support/APG/Playlist.xml");
-        #elif JUCE_WINDOWS
-            File fullPath = UserAppData.getChildFile("APG/Playlist.xml");
-        #endif
-            fullPath.create();
-        return fullPath;
-    }
-}
-
 MainComponent::MainComponent()
     : audioPlayer(audioFormatManager)
-    , playlistComponent(audioFormatManager, settingsXmlLocation())
+    , playlistComponent(audioFormatManager)
     , state(TransportState::Stopped)
     , transportSlider(audioPlayer)
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
@@ -28,9 +12,11 @@ MainComponent::MainComponent()
 {
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
+    playlistCreationComponent.addChangeListener(this);
     
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
+    addAndMakeVisible(playlistCreationComponent);
     addChildComponent(waveFormView.get());
     
     addButton.setButtonText("Add");
@@ -143,14 +129,17 @@ void MainComponent::resized()
     const auto transportButtonBoundsSize = 35;
 
     
-    auto totalBounds = getLocalBounds();
-    auto panelWidth  = totalBounds.proportionOfWidth(0.6);
+    auto totalBounds                 = getLocalBounds();
+    auto playListSongViewPanelWidth  = totalBounds.proportionOfWidth(0.6);
+    auto playlistCreationPanelWidth  = totalBounds.proportionOfWidth(0.3);
     
     auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
     auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
                                   totalBounds.removeFromBottom(transportMargin);
     auto waveformBounds         = totalBounds;
-    auto playlistBounds         = totalBounds.removeFromRight(panelWidth);
+    auto remainingBounds        = totalBounds;
+    auto playlistBounds         = totalBounds.removeFromRight(playListSongViewPanelWidth);
+    auto playlistCreationBounds = remainingBounds.removeFromLeft(playlistCreationPanelWidth);
     
     playButton.setBounds(transportButtonsBounds
                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
@@ -176,6 +165,7 @@ void MainComponent::resized()
     sidePanelButton.setBounds(360, 350, 50, 50);
     sidePanelButton.toBack();
     playlistComponent.setBounds(playlistBounds);
+    playlistCreationComponent.setBounds(playlistCreationBounds);
 
     waveFormView->setBounds(waveformBounds);
     transportSlider.setBounds(transportBarBounds);
@@ -222,6 +212,12 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
                 break;
         }
     }
+}
+
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == &playlistCreationComponent)
+        playlistComponent.LoadPlaylist(playlistCreationComponent.GetPlaylist());
 }
 
 void MainComponent::PlayButtonClicked(const int &row)
