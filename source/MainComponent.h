@@ -7,7 +7,8 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
 #include "AudioThumbnailComp.h"
-#include "PlaylistComponent.h"
+#include "PlaylistCreationComponent.h"
+#include "PlaylistSongViewComponent.h"
 #include "SidePanelWithBrowser.h"
 #include "TransportSlider.h"
 #include "WaveformView.h"
@@ -20,8 +21,9 @@
 class MainComponent
     : public juce::AudioAppComponent
     , public juce::Timer
+    , public juce::ChangeListener
     , private AudioPlayer::Listener
-    , private PlaylistComponent::Listener
+    , private PlaylistSongViewComponent::Listener
 {
 public:
     //==============================================================================
@@ -46,17 +48,20 @@ private:
     void TransportStateChanged(const TransportState& state) override;
     void StreamFinished();
     
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    
     void PlayButtonClicked(const int& row) override;
     
     void SkipBackward();
-    void LoadAndPlayTrack(const PlaylistComponent::TrackInformation& fileToPlay);
+    void LoadAndPlayTrack(const juce::XmlElement& track);
     
     AudioPlayer                   audioPlayer;
     std::unique_ptr<WaveformView> waveFormView;
     juce::AudioFormatManager      audioFormatManager;
     juce::AudioTransportSource    transportSource;
 
-    PlaylistComponent             playlistComponent;
+    PlaylistCreationComponent     playlistCreationComponent;
+    PlaylistSongViewComponent     playlistComponent;
     juce::File                    lastTrackPlayedDir;
         
     SidePanelWithBrowser          sidePanel;

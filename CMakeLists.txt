@@ -48,8 +48,10 @@ target_sources(APG
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
-        source/PlaylistComponent.cpp
-        source/PlaylistComponent.h
+        source/PlaylistCreationComponent.cpp
+        source/PlaylistCreationComponent.h
+        source/PlaylistSongViewComponent.cpp
+        source/PlaylistSongViewComponent.h
         source/SidePanelWithBrowser.h
         source/TransportSlider.h
         source/WaveformView.cpp

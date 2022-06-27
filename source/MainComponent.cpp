@@ -12,9 +12,11 @@ MainComponent::MainComponent()
 {
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
+    playlistCreationComponent.addChangeListener(this);
     
     addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
+    addAndMakeVisible(playlistCreationComponent);
     addChildComponent(waveFormView.get());
     
     addButton.setButtonText("Add");
@@ -127,14 +129,17 @@ void MainComponent::resized()
     const auto transportButtonBoundsSize = 35;
 
     
-    auto totalBounds = getLocalBounds();
-    auto panelWidth  = totalBounds.proportionOfWidth(0.6);
+    auto totalBounds                 = getLocalBounds();
+    auto playListSongViewPanelWidth  = totalBounds.proportionOfWidth(0.6);
+    auto playlistCreationPanelWidth  = totalBounds.proportionOfWidth(0.3);
     
     auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
     auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
                                   totalBounds.removeFromBottom(transportMargin);
     auto waveformBounds         = totalBounds;
-    auto playlistBounds         = totalBounds.removeFromRight(panelWidth);
+    auto remainingBounds        = totalBounds;
+    auto playlistBounds         = totalBounds.removeFromRight(playListSongViewPanelWidth);
+    auto playlistCreationBounds = remainingBounds.removeFromLeft(playlistCreationPanelWidth);
     
     playButton.setBounds(transportButtonsBounds
                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
@@ -160,6 +165,7 @@ void MainComponent::resized()
     sidePanelButton.setBounds(360, 350, 50, 50);
     sidePanelButton.toBack();
     playlistComponent.setBounds(playlistBounds);
+    playlistCreationComponent.setBounds(playlistCreationBounds);
 
     waveFormView->setBounds(waveformBounds);
     transportSlider.setBounds(transportBarBounds);
@@ -167,13 +173,12 @@ void MainComponent::resized()
 
 void MainComponent::StreamFinished()
 {
-    if (playlistComponent.tracks.size() > 1)
+    if (playlistComponent.getNumRows() > 1)
     {
-        auto finalSongInPlaylistTrackNo = playlistComponent.getFinalSongInPlaylist()->trackNumber;
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
-        if (finalSongInPlaylistTrackNo != lastSongPlayedTrackNo)
+        if (playlistComponent.getNumRows() != lastSongPlayedTrackNo)
         {
-            auto track = playlistComponent.tracks[unsigned(lastSongPlayedTrackNo)];
+            auto track = playlistComponent.GetTrack(lastSongPlayedTrackNo);
             LoadAndPlayTrack(*track);
         }
     }
@@ -209,19 +214,22 @@ void MainComponent::TransportStateChanged(const TransportState &newState)
     }
 }
 
-void MainComponent::PlayButtonClicked(const int &row)
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-    if (!playlistComponent.tracks.isEmpty())
-    {
-        auto selectedTrack = playlistComponent.tracks[unsigned(row)];
-        LoadAndPlayTrack(*selectedTrack);
-    }
+    if (source == &playlistCreationComponent)
+        playlistComponent.LoadPlaylist(playlistCreationComponent.GetPlaylist());
 }
 
-void MainComponent::LoadAndPlayTrack(const PlaylistComponent::TrackInformation& track)
+void MainComponent::PlayButtonClicked(const int &row)
 {
-    auto filePath = track.songFileLocation;
-    auto trackNo  = track.trackNumber;
+        auto selectedTrack = playlistComponent.GetTrack(row);
+        LoadAndPlayTrack(*selectedTrack);
+}
+
+void MainComponent::LoadAndPlayTrack(const juce::XmlElement& track)
+{
+    juce::File filePath = track.getStringAttribute("FileLocation");
+    auto trackNo  = track.getStringAttribute("No.").getIntValue();
     DBG(filePath.getFullPathName());
     
     audioPlayer.load(filePath);
@@ -238,12 +246,11 @@ void MainComponent::SkipBackward()
         audioPlayer.SetTransportPosition(0.0);
     else
     {
-        if (!playlistComponent.tracks.isEmpty())
+        if (!(playlistComponent.getNumRows() == 0))
         {
-            auto firstSongInPlaylistTrackNo = playlistComponent.GetFirstSongInPlaylist()->trackNumber;
-            auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
-            if (firstSongInPlaylistTrackNo != lastSongPlayedTrackNo)
-                LoadAndPlayTrack(*playlistComponent.tracks[unsigned(lastSongPlayedTrackNo) - 2]);
+            auto lastSongPlayedTrackNo = playlistComponent.GetLastTrackNoPlayed();
+            if (lastSongPlayedTrackNo != 1)
+                LoadAndPlayTrack(*playlistComponent.GetTrack(lastSongPlayedTrackNo - 2));
         }
     }
 }
