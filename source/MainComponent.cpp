@@ -10,6 +10,7 @@ MainComponent::MainComponent()
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
                                                  , audioPlayer))
 {
+    addKeyListener(this);
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
@@ -200,6 +201,17 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if (source == &playlistCreationComponent)
         playlistComponent.LoadPlaylist(playlistCreationComponent.GetPlaylist());
+}
+
+bool MainComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
+{
+    if(key.getKeyCode() == juce::KeyPress::spaceKey)
+    {
+        if (audioPlayer.IsTransportPlaying())
+            audioPlayer.stop();
+        else
+            audioPlayer.start();
+    }
 }
 
 void MainComponent::PlayButtonClicked(const int &row)
