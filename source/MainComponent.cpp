@@ -14,20 +14,10 @@ MainComponent::MainComponent()
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
     
-    addAndMakeVisible(sidePanel);
     addAndMakeVisible(playlistComponent);
     addAndMakeVisible(playlistCreationComponent);
     addChildComponent(waveFormView.get());
-    
-    addButton.setButtonText("Add");
-    addButton.onClick=[this]()
-    {
-        auto files = sidePanel.getFiles();
-        for (auto id : files)
-            playlistComponent.insertTracks(id);
-    };
-    addAndMakeVisible(addButton);
-    
+        
     auto playImage         = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                             , BinaryData::play_pngSize);
     auto pauseImage        = juce::ImageCache::getFromMemory( BinaryData::pause_png
@@ -62,11 +52,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(waveformViewButton);
 
     addAndMakeVisible(transportSlider);
-    
-    sidePanelButton.setButtonText("Browse Files");
-    sidePanelButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
-    addAndMakeVisible(sidePanelButton);
-    
+        
     setSize (1000, 600);
     
     setAudioChannels(0, 2);
@@ -160,10 +146,6 @@ void MainComponent::resized()
     waveformViewButton.setBounds(transportButtonsBounds
                                 .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
     
-    addButton.setBounds(300, 350, 50, 50);
-    addButton.toBack();
-    sidePanelButton.setBounds(360, 350, 50, 50);
-    sidePanelButton.toBack();
     playlistComponent.setBounds(playlistBounds);
     playlistCreationComponent.setBounds(playlistCreationBounds);
 

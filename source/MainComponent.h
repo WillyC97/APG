@@ -9,7 +9,6 @@
 #include "AudioThumbnailComp.h"
 #include "PlaylistCreationComponent.h"
 #include "PlaylistSongViewComponent.h"
-#include "SidePanelWithBrowser.h"
 #include "TransportSlider.h"
 #include "WaveformView.h"
 
@@ -63,12 +62,7 @@ private:
     PlaylistCreationComponent     playlistCreationComponent;
     PlaylistSongViewComponent     playlistComponent;
     juce::File                    lastTrackPlayedDir;
-        
-    SidePanelWithBrowser          sidePanel;
-    
-    juce::TextButton              addButton;
-    juce::TextButton              sidePanelButton;
-    
+                
     juce::ImageButton             playButton;
     juce::ImageButton             pauseButton;
     juce::ImageButton             skipForwardButton;

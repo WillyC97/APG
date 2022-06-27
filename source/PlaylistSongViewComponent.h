@@ -1,8 +1,9 @@
 #pragma once
 
 #include <juce_audio_utils/juce_audio_utils.h>
-
 #include <vector>
+
+#include "SidePanelWithBrowser.h"
 
 class PlaylistSongViewComponent
     : public juce::Component
@@ -58,7 +59,7 @@ public:
 //    void selectedRowsChanged(int lastRowSelected) override;
     
     /** triggers when button clicked */
-    void buttonClicked(juce::Button* button) override { juce::ignoreUnused(button); }
+    void buttonClicked(juce::Button* button) override;
     //==============================================================================
     std::vector<std::string> trackTitles;
 
@@ -83,26 +84,24 @@ private:
     
     juce::AudioFormatManager& formatManager;
     juce::File                playlistXmlFile;
-    juce::Font font           { 14.0f };
+    juce::Font                font{ 14.0f };
     
-    juce::TableListBox tableComponent;
+    juce::TableListBox    tableComponent;
+    juce::TextEditor      searchBar;
+    juce::TextButton      addButton;
+    SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;
     juce::XmlElement* columnList    = nullptr;
     juce::XmlElement* dataList      = nullptr;
-    int numRows = 0;
-    
-    std::vector<std::string> duration;
-    
-    void UpdateTrackID();
-    
+        
+    void        UpdateTrackID();
     std::string secondsToMins(double seconds);
-    
-    juce::TextEditor searchBar;
-    juce::TextButton addButton{ "Add tracks to playlist" };
-    
+        
+    int numRows = 0;
     int totalTracksInPlaylist;
     int lastTrackNoPlayed;
+    std::vector<std::string> duration;
     
     juce::ListenerList<Listener> listeners;
                               

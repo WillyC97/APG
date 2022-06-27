@@ -6,6 +6,7 @@
 
 PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
+, sidePanel(this)
 {
     tableComponent.getHeader().addColumn("No.", 1, 50);
     tableComponent.getHeader().addColumn("Title", 2, 200);
@@ -16,12 +17,14 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setRowHeight(42);
     tableComponent.setModel(this);
+    
+    addButton.setButtonText("Browsse Files");
+    addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
 
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
-
-    addButton.addListener(this);
+    addAndMakeVisible(sidePanel);
 
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::antiquewhite);
     searchBar.onTextChange = [this]
@@ -160,6 +163,17 @@ int PlaylistSongViewComponent::getColumnAutoSizeWidth (int columnId)
     }
 
     return widest + 8;
+}
+//-----------------------------------------------------------------------------
+void PlaylistSongViewComponent::buttonClicked(juce::Button* button)
+{
+    auto buttonName = button->getComponentID();
+    if(buttonName == "add")
+    {
+        auto files = sidePanel.GetFiles();
+        for(auto id : files)
+            insertTracks(id);
+    }
 }
 //==============================================================================
 int PlaylistSongViewComponent::getNumRows()
