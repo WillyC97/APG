@@ -12,12 +12,17 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHeader().addColumn("Title",    2, 300);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
     tableComponent.getHeader().addColumn("Play",     4, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove",   5, 50);
+    tableComponent.getHeader().addColumn("Remove",   5, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
     tableComponent.setRowHeight(52);
     tableComponent.setModel(this);
+    
+    tableComponent.getVerticalScrollBar()  .setColour( juce::ScrollBar::thumbColourId
+                                                      , juce::Colour(0xFFb8b8b8));
+    tableComponent.getHorizontalScrollBar().setColour( juce::ScrollBar::thumbColourId
+                                                     , juce::Colour(0xFFb8b8b8));
     
     addButton.setButtonText("Browsse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
@@ -88,9 +93,6 @@ void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int 
 
         g.drawText (text, 2, 0, width - 4, height, justification, true);
     }
-
-    g.setColour (getLookAndFeel().findColour (juce::ListBox::backgroundColourId));
-    g.fillRect (width - 1, 0, 1, height);
 }
 //-----------------------------------------------------------------------------
 juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumber
