@@ -8,14 +8,15 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
 : formatManager(_formatManager)
 , sidePanel(this)
 {
-    tableComponent.getHeader().addColumn("No.", 1, 50);
-    tableComponent.getHeader().addColumn("Title", 2, 200);
+    tableComponent.getHeader().addColumn("No.",      1, 12);
+    tableComponent.getHeader().addColumn("Title",    2, 300);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
-    tableComponent.getHeader().addColumn("Play", 4, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove", 5, 50);
+    tableComponent.getHeader().addColumn("Play",     4, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Remove",   5, 50);
 
     tableComponent.getHeader().setStretchToFitActive(true);
-    tableComponent.setRowHeight(42);
+    tableComponent.setHeaderHeight(35);
+    tableComponent.setRowHeight(52);
     tableComponent.setModel(this);
     
     addButton.setButtonText("Browsse Files");
@@ -48,9 +49,10 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
 //==============================================================================
 void PlaylistSongViewComponent::paint(juce::Graphics& /*g*/)
 {
-    getLookAndFeel().setColour(juce::TableListBox::backgroundColourId, juce::Colour(0xFF041f18));
-    getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF122a2d));
-    getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId, juce::Colours::lightcyan);
+    getLookAndFeel().setColour(juce::TableListBox::backgroundColourId,         juce::Colour(0xFF1c1c1c));
+    getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF1c1c1c));
+    getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId,       juce::Colour(0xFFb8b8b8));
+    getLookAndFeel().setColour(juce::TableHeaderComponent::outlineColourId,    juce::Colours::transparentBlack);
 }
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
@@ -65,21 +67,21 @@ void PlaylistSongViewComponent::resized()
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
 {
-    if (rowIsSelected)
-    {
-        g.fillAll(juce::Colours::mediumaquamarine);
-    }
-    else {
-        g.fillAll(juce::Colour(0xFF0b3839));
-    }
+    if(rowIsSelected)
+        g.fillAll(juce::Colour(0xFF5c5c5c));
+    else
+        g.fillAll(juce::Colours::transparentBlack);
 }
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    g.setColour (rowIsSelected ? juce::Colours::darkblue : getLookAndFeel().findColour (juce::ListBox::textColourId));
-
     if (auto* rowElement = dataList->getChildElement(rowNumber))
     {
+        if(rowElement->getStringAttribute("UUID") == currentTrackUUID)
+            g.setColour(juce::Colours::turquoise);
+        else
+            g.setColour(juce::Colours::ghostwhite);
+            
         auto columnName = tableComponent.getHeader().getColumnName(columnId);
         auto justification = columnName == "No." ? juce::Justification::centred : juce::Justification::centredLeft;
         auto text = rowElement->getStringAttribute(columnName);
@@ -109,10 +111,7 @@ juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumb
         playButton->setRowAndColumn (rowNumber, columnId);
         auto transparent = juce::Colours::transparentBlack;
         playButton->SetButtonImages(false, true, true, playImage, 0.9f, transparent, playImage, 0.5f, transparent, playImage, 1.0f, transparent);
-        playButton->ButtonPressed = [=] (int row)
-        {
-            RowPlayButtonClicked(row);
-        };
+        playButton->ButtonPressed = [=] (int row) { RowPlayButtonClicked(row); };
         return playButton;
     }
     
@@ -201,7 +200,9 @@ void PlaylistSongViewComponent::UpdateTrackID()
 //==============================================================================
 juce::XmlElement* PlaylistSongViewComponent::GetTrack(int index)
 {
-    return dataList->getChildElement(index);
+    auto track = dataList->getChildElement(index);
+    currentTrackUUID = track->getStringAttribute("UUID");
+    return track;
 }
 //-----------------------------------------------------------------------------
 juce::XmlElement* PlaylistSongViewComponent::GetFirstSongInPlaylist()
@@ -254,6 +255,7 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
         track->setAttribute("Title", title);
         track->setAttribute("Duration", trackDuration);
         track->setAttribute("FileLocation", audioFile.getFullPathName());
+        track->setAttribute("UUID", juce::Uuid().toString());
         dataList    ->addChildElement(track.release());
         playlistData->writeTo(playlistXmlFile);
         track.reset();
@@ -302,7 +304,7 @@ void TableImageButtonCustomComponent::SetButtonImages( const bool resizeButtonNo
 //-----------------------------------------------------------------------------
 void TableImageButtonCustomComponent::resized()
 {
-    button.setBoundsInset(juce::BorderSize<int> (10));
+    button.setBoundsInset(juce::BorderSize<int> (14));
 }
 //-----------------------------------------------------------------------------
 void TableImageButtonCustomComponent::setRowAndColumn (int newRow, int newColumn)

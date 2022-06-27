@@ -69,7 +69,7 @@ public:
     juce::XmlElement* GetTrack(int index);
     juce::XmlElement* GetFirstSongInPlaylist();
     
-    void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
+    void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; tableComponent.repaint(); }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
     
     void RowPlayButtonClicked(const int& row);
@@ -102,6 +102,7 @@ private:
     int totalTracksInPlaylist;
     int lastTrackNoPlayed;
     std::vector<std::string> duration;
+    juce::String             currentTrackUUID;
     
     juce::ListenerList<Listener> listeners;
                               
