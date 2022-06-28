@@ -48,6 +48,7 @@ public:
     //==============================================================================
     int getColumnAutoSizeWidth(int columnId) override;
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
+    void cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent&) override;
     //==============================================================================
 
 //    /** triggers when cell is clicked */

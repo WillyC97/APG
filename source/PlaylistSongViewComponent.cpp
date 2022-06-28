@@ -169,6 +169,11 @@ int PlaylistSongViewComponent::getColumnAutoSizeWidth (int columnId)
     return widest + 8;
 }
 //-----------------------------------------------------------------------------
+void PlaylistSongViewComponent::cellDoubleClicked (int rowNumber, int /*columnId*/, const juce::MouseEvent&)
+{
+    RowPlayButtonClicked(rowNumber);
+}
+//-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::buttonClicked(juce::Button* button)
 {
     auto buttonName = button->getComponentID();
