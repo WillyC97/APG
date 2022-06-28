@@ -55,12 +55,21 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     formatManager.registerBasicFormats();
 }
 //==============================================================================
-void PlaylistSongViewComponent::paint(juce::Graphics& /*g*/)
+void PlaylistSongViewComponent::paint(juce::Graphics& g)
 {
     getLookAndFeel().setColour(juce::TableListBox::backgroundColourId,         juce::Colour(0xFF1c1c1c));
     getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF1c1c1c));
     getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId,       juce::Colour(0xFFb8b8b8));
     getLookAndFeel().setColour(juce::TableHeaderComponent::outlineColourId,    juce::Colours::transparentBlack);
+    
+    auto totalArea    = getLocalBounds();
+    auto bannerHeight = totalArea.proportionOfHeight(0.15);
+    auto bannerArea   = totalArea.removeFromTop(bannerHeight);
+    g.setGradientFill(juce::ColourGradient::vertical( juce::Colours::grey
+                                                    , 0.f
+                                                    , juce::Colour(0xFF1c1c1c)
+                                                    , bannerHeight * 0.8f));
+    g.fillRect(bannerArea);
 }
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
