@@ -14,6 +14,7 @@ namespace internal
         enum Type
         {
             Regular = 0,
+            SemiBold,
             Bold,
             Italic,
             Thin
@@ -27,6 +28,10 @@ namespace internal
             {
                 fonts.set(Type::Regular,
                           juce::Font(juce::Typeface::createSystemTypefaceFor(FontsPoppins::PoppinsRegular_ttf, FontsPoppins::PoppinsRegular_ttfSize))
+                );
+                
+                fonts.set(Type::SemiBold,
+                          juce::Font(juce::Typeface::createSystemTypefaceFor(FontsPoppins::PoppinsSemiBold_ttf, FontsPoppins::PoppinsSemiBold_ttfSize))
                 );
 
                 fonts.set(Type::Bold,
