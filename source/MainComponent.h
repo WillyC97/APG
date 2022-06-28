@@ -21,6 +21,7 @@ class MainComponent
     : public juce::AudioAppComponent
     , public juce::Timer
     , public juce::ChangeListener
+    , public juce::KeyListener
     , private AudioPlayer::Listener
     , private PlaylistSongViewComponent::Listener
 {
@@ -38,6 +39,7 @@ public:
     void resized() override;
     
     void timerCallback() override;
+    bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
     
 private:
     //==============================================================================

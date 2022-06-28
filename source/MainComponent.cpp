@@ -10,6 +10,7 @@ MainComponent::MainComponent()
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
                                                  , audioPlayer))
 {
+    addKeyListener(this);
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
@@ -106,26 +107,24 @@ void MainComponent::paint (juce::Graphics& g)
 }
 
 void MainComponent::resized()
-{
+{    
     const auto buttonSize = 50;
     const auto buttonGap  = 35;
     
-    const auto transportMargin           = 13;
-    const auto transportBarBoundsSize    = 42;
-    const auto transportButtonBoundsSize = 35;
+    const auto transportMargin              = 13;
+    const auto transportBarBoundsSize       = 42;
+    const auto transportButtonBoundsSize    = 35;
+    const auto availablePlaylistsBoundsSize = 240;
 
     
-    auto totalBounds                 = getLocalBounds();
-    auto playListSongViewPanelWidth  = totalBounds.proportionOfWidth(0.6);
-    auto playlistCreationPanelWidth  = totalBounds.proportionOfWidth(0.3);
+    auto totalBounds            = getLocalBounds();
     
     auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
     auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
                                   totalBounds.removeFromBottom(transportMargin);
     auto waveformBounds         = totalBounds;
-    auto remainingBounds        = totalBounds;
-    auto playlistBounds         = totalBounds.removeFromRight(playListSongViewPanelWidth);
-    auto playlistCreationBounds = remainingBounds.removeFromLeft(playlistCreationPanelWidth);
+    auto playlistCreationBounds = totalBounds.removeFromLeft(availablePlaylistsBoundsSize);
+    auto playlistBounds         = totalBounds;
     
     playButton.setBounds(transportButtonsBounds
                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
@@ -200,6 +199,17 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if (source == &playlistCreationComponent)
         playlistComponent.LoadPlaylist(playlistCreationComponent.GetPlaylist());
+}
+
+bool MainComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
+{
+    if(key.getKeyCode() == juce::KeyPress::spaceKey)
+    {
+        if (audioPlayer.IsTransportPlaying())
+            audioPlayer.stop();
+        else
+            audioPlayer.start();
+    }
 }
 
 void MainComponent::PlayButtonClicked(const int &row)

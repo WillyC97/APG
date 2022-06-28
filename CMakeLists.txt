@@ -20,7 +20,7 @@ add_subdirectory("${JUCE_DIR}")
 
 juce_add_gui_app(APG
     # VERSION ...                       # Set this if the app version is different to the project version
-    # ICON_BIG ...                      # ICON_* arguments specify a path to an image file to use as an icon
+    ICON_BIG resources/waveform.png     # ICON_* arguments specify a path to an image file to use as an icon
     # ICON_SMALL ...
     # DOCUMENT_EXTENSIONS ...           # Specify file extensions that should be associated with this app
     # COMPANY_NAME ...                  # Specify the name of the app's author
@@ -45,6 +45,9 @@ target_sources(APG
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
         source/AudioThumbnailComp.h
+        source/Fonts.h
+        source/FontsPoppins.cpp
+        source/FontsPoppins.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h

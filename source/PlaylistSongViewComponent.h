@@ -48,6 +48,7 @@ public:
     //==============================================================================
     int getColumnAutoSizeWidth(int columnId) override;
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
+    void cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent&) override;
     //==============================================================================
 
 //    /** triggers when cell is clicked */
@@ -69,7 +70,7 @@ public:
     juce::XmlElement* GetTrack(int index);
     juce::XmlElement* GetFirstSongInPlaylist();
     
-    void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; }
+    void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; tableComponent.repaint(); }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
     
     void RowPlayButtonClicked(const int& row);
@@ -89,6 +90,7 @@ private:
     juce::TableListBox    tableComponent;
     juce::TextEditor      searchBar;
     juce::TextButton      addButton;
+    juce::Label           playlistNameLabel;
     SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;
@@ -102,6 +104,7 @@ private:
     int totalTracksInPlaylist;
     int lastTrackNoPlayed;
     std::vector<std::string> duration;
+    juce::String             currentTrackUUID;
     
     juce::ListenerList<Listener> listeners;
                               

@@ -62,6 +62,10 @@ public:
         {
             setUsingNativeTitleBar (true);
             setContentOwned (new MainComponent(), true);
+            auto r = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
+            auto width = r.getWidth();
+            auto height = r.getHeight();
+            setResizeLimits(800, 580, width, height);
 
            #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);

@@ -1,4 +1,7 @@
 #include "PlaylistCreationComponent.h"
+#include "Fonts.h"
+
+using namespace APG::internal;
 //==============================================================================
 namespace
 {
@@ -27,10 +30,10 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     addPlaylistButton.onClick=[this](){ LaunchDialogBox(); };
     addAndMakeVisible(addPlaylistButton);
     
-    listBox.setRowHeight(30);
+    listBox.setRowHeight(40);
     listBox.setModel(this);
-    listBox.setColour(juce::ListBox::textColourId, juce::Colours::black);
-    listBox.setColour(juce::ListBox::backgroundColourId, juce::Colours::white);
+    listBox.setColour(juce::ListBox::textColourId,       juce::Colours::ghostwhite);
+    listBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xFF111212));
     addAndMakeVisible(listBox);
 }
 //==============================================================================
@@ -53,10 +56,11 @@ void PlaylistCreationComponent::resized()
 void PlaylistCreationComponent::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
     if (rowIsSelected)
-        g.fillAll (juce::Colours::lightblue);
-
-    g.setColour(juce::Colours::black);
-    g.setFont(height * 0.7f);
+        g.setColour(juce::Colours::ghostwhite);
+    else
+        g.setColour(juce::Colour(0xFFb8b8b8));
+    
+    g.setFont(Fonts::GetFont(Fonts::Type::Regular, height * 0.5f));
    
     g.drawText(std::get<0>(playlistNames[rowNumber]), 5, 0, width, height,
                juce::Justification::centredLeft, true);
