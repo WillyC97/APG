@@ -90,6 +90,7 @@ private:
     juce::TableListBox    tableComponent;
     juce::TextEditor      searchBar;
     juce::TextButton      addButton;
+    juce::Label           playlistNameLabel;
     SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;

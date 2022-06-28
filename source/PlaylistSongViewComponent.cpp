@@ -32,6 +32,7 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
+    addAndMakeVisible(playlistNameLabel);
     addAndMakeVisible(sidePanel);
 
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::antiquewhite);
@@ -64,11 +65,14 @@ void PlaylistSongViewComponent::paint(juce::Graphics& /*g*/)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
 {
-    auto totalArea = getLocalBounds();
-    auto rowHeight = totalArea.proportionOfHeight(0.1);
-    auto rowArea   = totalArea.removeFromTop(rowHeight);
-    searchBar.setBounds(rowArea.removeFromLeft(rowArea.proportionOfWidth(0.5)));
-    addButton.setBounds(rowArea);
+    auto totalArea    = getLocalBounds();
+    auto padding      = totalArea.proportionOfWidth(0.01f);
+    auto bannerHeight = totalArea.proportionOfHeight(0.15);
+    auto bannerArea   = totalArea.removeFromTop(bannerHeight);
+                        bannerArea.removeFromLeft(padding);
+    playlistNameLabel.setBounds(bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5)));
+    playlistNameLabel.setFont(Fonts::GetFont(Fonts::Type::SemiBold, bannerHeight));
+    addButton.setBounds(bannerArea);
     tableComponent.setBounds(totalArea);
 }
 //-----------------------------------------------------------------------------
@@ -238,10 +242,14 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
     if (xmlFile == juce::File() || ! xmlFile.exists())
         return;
 
-    playlistXmlFile = xmlFile;
-    playlistData = juce::XmlDocument::parse(xmlFile);
-    dataList     = playlistData->getChildByName("DATA");
-    numRows      = dataList->getNumChildElements();
+    playlistXmlFile   = xmlFile;
+    playlistData      = juce::XmlDocument::parse(xmlFile);
+    dataList          = playlistData->getChildByName("DATA");
+    auto playlistName = playlistData->getChildByName("PLAYLISTNAME")
+                                    ->getStringAttribute("PlaylistName");
+    numRows           = dataList->getNumChildElements();
+    
+    playlistNameLabel.setText(playlistName, juce::dontSendNotification);
     tableComponent.updateContent();
     repaint();
 }
