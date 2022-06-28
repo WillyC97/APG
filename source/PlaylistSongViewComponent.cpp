@@ -1,8 +1,10 @@
-#include <juce_audio_utils/juce_audio_utils.h>
 #include <algorithm>
 
 #include "PlaylistSongViewComponent.h"
 #include "BinaryData.h"
+#include "Fonts.h"
+
+using namespace APG::internal;
 
 PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
@@ -91,6 +93,7 @@ void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int 
         auto justification = columnName == "No." ? juce::Justification::centred : juce::Justification::centredLeft;
         auto text = rowElement->getStringAttribute(columnName);
 
+        g.setFont(Fonts::GetFont(Fonts::Type::Regular, 16.f));
         g.drawText (text, 2, 0, width - 4, height, justification, true);
     }
 }

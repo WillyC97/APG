@@ -45,6 +45,9 @@ target_sources(APG
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
         source/AudioThumbnailComp.h
+        source/Fonts.h
+        source/FontsPoppins.cpp
+        source/FontsPoppins.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h

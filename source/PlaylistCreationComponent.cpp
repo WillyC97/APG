@@ -1,4 +1,7 @@
 #include "PlaylistCreationComponent.h"
+#include "Fonts.h"
+
+using namespace APG::internal;
 //==============================================================================
 namespace
 {
@@ -56,8 +59,8 @@ void PlaylistCreationComponent::paintListBoxItem(int rowNumber, juce::Graphics& 
         g.setColour(juce::Colours::ghostwhite);
     else
         g.setColour(juce::Colour(0xFFb8b8b8));
-                    
-    g.setFont(height * 0.4f);
+    
+    g.setFont(Fonts::GetFont(Fonts::Type::Regular, height * 0.5f));
    
     g.drawText(std::get<0>(playlistNames[rowNumber]), 5, 0, width, height,
                juce::Justification::centredLeft, true);
