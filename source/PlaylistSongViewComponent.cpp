@@ -112,9 +112,9 @@ void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int 
 }
 //-----------------------------------------------------------------------------
 juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumber
-                                                           , int columnId
-                                                           , bool /*isRowSelected*/
-                                                           , juce::Component* existingComponentToUpdate)
+                                                                   , int columnId
+                                                                   , bool /*isRowSelected*/
+                                                                   , juce::Component* existingComponentToUpdate)
 {
     if (columnId == 4)
     {
