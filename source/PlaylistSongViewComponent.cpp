@@ -26,16 +26,15 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHorizontalScrollBar().setColour( juce::ScrollBar::thumbColourId
                                                      , juce::Colour(0xFFb8b8b8));
     
-    addButton.setButtonText("Browsse Files");
+    addButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
-
-    addAndMakeVisible(tableComponent);
-    addAndMakeVisible(searchBar);
-    addAndMakeVisible(addButton);
-    addAndMakeVisible(playlistNameLabel);
-    addAndMakeVisible(sidePanel);
-
-    searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::antiquewhite);
+    
+    searchBar.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xFF878787));
+    searchBar.setColour(juce::TextEditor::textColourId, juce::Colours::ghostwhite);
+    searchBar.setColour(juce::TextEditor::outlineColourId, juce::Colours::transparentWhite);
+    searchBar.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::transparentWhite);
+    searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::ghostwhite);
     searchBar.onTextChange = [this]
     {
         int rowCount = 0;
@@ -51,6 +50,12 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
             rowCount = rowCount + 1;
         }
     };
+
+    addAndMakeVisible(tableComponent);
+    addAndMakeVisible(searchBar);
+    addAndMakeVisible(addButton);
+    addAndMakeVisible(playlistNameLabel);
+    addAndMakeVisible(sidePanel);
 
     formatManager.registerBasicFormats();
 }
@@ -74,14 +79,24 @@ void PlaylistSongViewComponent::paint(juce::Graphics& g)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
 {
-    auto totalArea    = getLocalBounds();
-    auto padding      = totalArea.proportionOfWidth(0.01f);
-    auto bannerHeight = totalArea.proportionOfHeight(0.15);
-    auto bannerArea   = totalArea.removeFromTop(bannerHeight);
-                        bannerArea.removeFromLeft(padding);
-    playlistNameLabel.setBounds(bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5)));
+    auto totalArea     = getLocalBounds();
+    auto widthPadding  = totalArea.proportionOfWidth(0.01f);
+    auto heightPadding = totalArea.proportionOfHeight(0.01f);
+    auto bannerHeight  = totalArea.proportionOfHeight(0.15);
+    auto bannerArea    = totalArea.removeFromTop(bannerHeight);
+                          bannerArea.removeFromLeft(widthPadding);
+    auto leftBannerArea = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
+    
+    playlistNameLabel.setBounds(leftBannerArea);
     playlistNameLabel.setFont(Fonts::GetFont(Fonts::Type::SemiBold, bannerHeight));
-    addButton.setBounds(bannerArea);
+        
+    bannerArea.removeFromRight(widthPadding);
+    bannerArea.removeFromBottom(heightPadding);
+    addButton.setBounds(bannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.5)));
+    bannerArea.removeFromTop(heightPadding);
+    bannerArea.removeFromBottom(heightPadding);
+    searchBar.setBounds(bannerArea);
+    searchBar.setFont(Fonts::GetFont(Fonts::Type::Thin, bannerArea.getHeight() * 0.9f));
     tableComponent.setBounds(totalArea);
 }
 //-----------------------------------------------------------------------------
