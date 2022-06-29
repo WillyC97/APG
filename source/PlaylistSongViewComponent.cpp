@@ -29,7 +29,7 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHorizontalScrollBar().setColour( juce::ScrollBar::thumbColourId
                                                      , juce::Colour(0xFFb8b8b8));
     
-    addButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
     
