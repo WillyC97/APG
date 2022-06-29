@@ -73,6 +73,8 @@ public:
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; tableComponent.repaint(); }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
     
+    void SetPlaylistLimit(double limit);
+    
     void RowPlayButtonClicked(const int& row);
 
     void AddListener   (Listener &l) { listeners.add(&l); }
@@ -100,12 +102,14 @@ private:
 
     void         UpdateTrackID();
     void         UpdateDurationLabel();
+    void         RemoveTrackFromPlaylist(int row);
     juce::String secondsToMins(double seconds);
 
     int          numRows = 0;
     int          totalTracksInPlaylist;
     int          lastTrackNoPlayed;
     double       playlistTotalDurationSecs = 0.0;
+    double       playlistTotalTimeLimitSecs = 36000.0;
     juce::String currentTrackUUID;
 
     juce::ListenerList<Listener> listeners;

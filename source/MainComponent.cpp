@@ -9,15 +9,19 @@ MainComponent::MainComponent()
     , transportSlider(audioPlayer)
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
                                                  , audioPlayer))
+    , playlistSettingsComponent(std::make_unique<PlaylistSettingsComponent>(playlistComponent))
+    , playlistSettingsSidePanel("Playlist Settings", 400, true)
 {
     addKeyListener(this);
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
+    playlistSettingsSidePanel.setContent(playlistSettingsComponent.release());
     
     addAndMakeVisible(playlistComponent);
     addAndMakeVisible(playlistCreationComponent);
     addChildComponent(waveFormView.get());
+    addAndMakeVisible(playlistSettingsSidePanel);
         
     auto playImage         = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                             , BinaryData::play_pngSize);
@@ -51,6 +55,14 @@ MainComponent::MainComponent()
     waveformViewButton.setClickingTogglesState(true);
     waveformViewButton.onClick=[=](){ waveFormView->setVisible(!waveFormView->isShowing()); };
     addAndMakeVisible(waveformViewButton);
+    
+    playlistSettingsButton.setButtonText("Playlist Settings");
+    playlistSettingsButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    playlistSettingsButton.onClick=[this]()
+    {
+        playlistSettingsSidePanel.showOrHide(!playlistSettingsSidePanel.isPanelShowing());
+    };
+    addAndMakeVisible(playlistSettingsButton);
 
     addAndMakeVisible(transportSlider);
         
@@ -119,6 +131,7 @@ void MainComponent::resized()
                                   totalBounds.removeFromBottom(transportMargin);
     auto waveformBounds         = totalBounds;
     auto playlistCreationBounds = totalBounds.removeFromLeft(availablePlaylistsBoundsSize);
+    auto playlistSettingsBounds = playlistCreationBounds.removeFromTop(buttonSize);
     auto playlistBounds         = totalBounds;
     
     playButton.setBounds(transportButtonsBounds
@@ -140,6 +153,7 @@ void MainComponent::resized()
     waveformViewButton.setBounds(transportButtonsBounds
                                 .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
     
+    playlistSettingsButton.setBounds(playlistSettingsBounds);
     playlistComponent.setBounds(playlistBounds);
     playlistCreationComponent.setBounds(playlistCreationBounds);
 

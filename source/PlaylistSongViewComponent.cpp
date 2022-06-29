@@ -168,16 +168,7 @@ juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumb
         deleteButton->setRowAndColumn (rowNumber, columnId);
         auto transparent = juce::Colours::transparentBlack;
         deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
-        deleteButton->ButtonPressed = [=] (int row)
-        {
-            dataList->removeChildElement(dataList->getChildElement(row), true);
-            totalTracksInPlaylist -= 1;
-            numRows -= 1;
-            UpdateTrackID();
-            playlistData->writeTo(playlistXmlFile);
-            tableComponent.updateContent();
-            tableComponent.repaint();
-        };
+        deleteButton->ButtonPressed = [=] (int row) { RemoveTrackFromPlaylist(row); };
         return deleteButton;
     }
 
@@ -260,10 +251,40 @@ juce::XmlElement* PlaylistSongViewComponent::GetFirstSongInPlaylist()
 {
     return dataList->getFirstChildElement();
 }
+//-----------------------------------------------------------------------------
+void PlaylistSongViewComponent::RemoveTrackFromPlaylist(int row)
+{
+    if (row >= 0)
+    {
+        auto track = dataList->getChildElement(row);
+        auto trackLen = track->getDoubleAttribute("DurationInSecs");
+        playlistTotalDurationSecs -= trackLen;
+        dataList->removeChildElement(track, true);
+        totalTracksInPlaylist -= 1;
+        numRows -= 1;
+        UpdateTrackID();
+        UpdateDurationLabel();
+        playlistData->writeTo(playlistXmlFile);
+        tableComponent.updateContent();
+        tableComponent.repaint();
+    }
+}
 //==============================================================================
 void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
+}
+
+void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
+{
+    playlistTotalTimeLimitSecs = limit * 60.0;
+    DBG("Playlist limit: " << playlistTotalTimeLimitSecs);
+    playlistData->getChildByName("PLAYLISTINFO")
+                ->setAttribute("PlaylistDurationLimit", playlistTotalTimeLimitSecs);
+    playlistData->writeTo(playlistXmlFile);
+    
+    while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+        RemoveTrackFromPlaylist(getNumRows() - 1);
 }
 //-----------------------------------------------------------------------------
 juce::String PlaylistSongViewComponent::secondsToMins(double seconds)
@@ -280,13 +301,14 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
     if (xmlFile == juce::File() || ! xmlFile.exists())
         return;
 
-    playlistXmlFile           = xmlFile;
-    playlistData              = juce::XmlDocument::parse(xmlFile);
-    dataList                  = playlistData->getChildByName("DATA");
-    auto playlistInfo         = playlistData->getChildByName("PLAYLISTINFO");
-    auto playlistName         = playlistInfo->getStringAttribute("PlaylistName");
-    playlistTotalDurationSecs = playlistInfo->getDoubleAttribute("PlaylistDurationSecs");
-    numRows                   = dataList->getNumChildElements();
+    playlistXmlFile            = xmlFile;
+    playlistData               = juce::XmlDocument::parse(xmlFile);
+    dataList                   = playlistData->getChildByName("DATA");
+    auto playlistInfo          = playlistData->getChildByName("PLAYLISTINFO");
+    auto playlistName          = playlistInfo->getStringAttribute("PlaylistName");
+    playlistTotalDurationSecs  = playlistInfo->getDoubleAttribute("PlaylistDurationSecs");
+    playlistTotalTimeLimitSecs = playlistInfo->getDoubleAttribute("PlaylistDurationLimit", 600);
+    numRows                    = dataList->getNumChildElements();
     
     UpdateDurationLabel();
     playlistNameLabel.setText(playlistName, juce::dontSendNotification);
@@ -301,12 +323,18 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
     {
         auto lengthInSamples       = reader->lengthInSamples;
         auto sampleRate            = reader->sampleRate;
-        auto trackLength           = lengthInSamples/sampleRate;
-        playlistTotalDurationSecs += trackLength;
+        auto trackDurationSecs     = lengthInSamples/sampleRate;
+        playlistTotalDurationSecs += trackDurationSecs;
+        
+        if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+        {
+            playlistTotalDurationSecs -= trackDurationSecs;
+            return;
+        }
 
         auto title         = audioFile.getFileNameWithoutExtension().toStdString();
         auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
-        auto trackDuration = secondsToMins(trackLength);
+        auto trackDuration = secondsToMins(trackDurationSecs);
         
         totalTracksInPlaylist = getNumRows() + 1;
         UpdateDurationLabel();
@@ -317,6 +345,7 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
         track->setAttribute("Title", title);
         track->setAttribute("Duration", trackDuration);
         track->setAttribute("FileLocation", audioFile.getFullPathName());
+        track->setAttribute("DurationInSecs", trackDurationSecs);
         track->setAttribute("UUID", juce::Uuid().toString());
         dataList    ->addChildElement(track.release());
         playlistData->getChildByName("PLAYLISTINFO")
