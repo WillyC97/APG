@@ -94,6 +94,7 @@ private:
     juce::TextButton      addButton;
     juce::Label           playlistNameLabel;
     juce::Label           playlistDurationLabel;
+    juce::Label           playlistLimitReachedLabel;
     SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;

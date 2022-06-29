@@ -54,11 +54,15 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
         }
     };
 
+    playlistLimitReachedLabel.setText("Playlist Duration Limit Reached...", juce::dontSendNotification);
+    playlistLimitReachedLabel.setColour(juce::Label::textColourId, juce::Colours::turquoise);
+    
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
     addAndMakeVisible(playlistNameLabel);
     addAndMakeVisible(playlistDurationLabel);
+    addChildComponent(playlistLimitReachedLabel);
     addAndMakeVisible(sidePanel);
 
     formatManager.registerBasicFormats();
@@ -83,19 +87,22 @@ void PlaylistSongViewComponent::paint(juce::Graphics& g)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
 {
-    auto totalArea     = getLocalBounds();
-    auto widthPadding  = totalArea.proportionOfWidth(0.01f);
-    auto heightPadding = totalArea.proportionOfHeight(0.01f);
-    auto bannerHeight  = totalArea.proportionOfHeight(0.15);
-    auto bannerArea    = totalArea.removeFromTop(bannerHeight);
-                          bannerArea.removeFromLeft(widthPadding);
-    auto leftBannerArea = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
-    auto playlistdurationArea = leftBannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.2));
+    auto totalArea       = getLocalBounds();
+    auto widthPadding    = totalArea.proportionOfWidth(0.01f);
+    auto heightPadding   = totalArea.proportionOfHeight(0.01f);
+    auto bannerHeight    = totalArea.proportionOfHeight(0.15);
+    auto bannerArea      = totalArea.removeFromTop(bannerHeight);
+                            bannerArea.removeFromLeft(widthPadding);
+    auto leftBannerArea  = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
+    auto labelArea       = leftBannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.2));
+    auto durationLblArea = labelArea.removeFromLeft(labelArea.proportionOfWidth(0.5));
     
-    playlistNameLabel    .setBounds(leftBannerArea);
-    playlistDurationLabel.setBounds(playlistdurationArea);
-    playlistNameLabel    .setFont(Fonts::GetFont(Fonts::Type::SemiBold, leftBannerArea.getHeight()));
-    playlistDurationLabel.setFont(Fonts::GetFont(Fonts::Type::Thin, playlistdurationArea.getHeight()));
+    playlistNameLabel        .setBounds(leftBannerArea);
+    playlistDurationLabel    .setBounds(durationLblArea);
+    playlistLimitReachedLabel.setBounds(labelArea);
+    playlistNameLabel        .setFont(Fonts::GetFont(Fonts::Type::SemiBold, leftBannerArea.getHeight()));
+    playlistDurationLabel    .setFont(Fonts::GetFont(Fonts::Type::Thin, labelArea.getHeight()));
+    playlistLimitReachedLabel.setFont(Fonts::GetFont(Fonts::Type::Regular, labelArea.getHeight()));
         
     bannerArea.removeFromRight(widthPadding);
     bannerArea.removeFromBottom(heightPadding);
@@ -328,6 +335,9 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
         
         if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
         {
+            playlistLimitReachedLabel.setVisible(true);
+            playlistLimitReachedLabel.setAlpha(1.0);
+            juce::Desktop::getInstance().getAnimator().fadeOut(&playlistLimitReachedLabel, 4000);
             playlistTotalDurationSecs -= trackDurationSecs;
             return;
         }
