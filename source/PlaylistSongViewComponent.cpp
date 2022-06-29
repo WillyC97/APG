@@ -227,11 +227,14 @@ void PlaylistSongViewComponent::sortOrderChanged (int newSortColumnId, bool isFo
 {
     if (newSortColumnId != 0)
     {
-        PlaylistDataSorter sorter(tableComponent.getHeader().getColumnName(newSortColumnId), isForwards);
-        dataList->sortChildElements (sorter);
-        UpdateTrackID();
-        playlistData->writeTo(playlistXmlFile);
-        tableComponent.updateContent();
+        if (dataList)
+        {
+            PlaylistDataSorter sorter(tableComponent.getHeader().getColumnName(newSortColumnId), isForwards);
+            dataList->sortChildElements (sorter);
+            UpdateTrackID();
+            playlistData->writeTo(playlistXmlFile);
+            tableComponent.updateContent();
+        }
     }
 }
 //-----------------------------------------------------------------------------
@@ -284,14 +287,17 @@ void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
 
 void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
 {
-    playlistTotalTimeLimitSecs = limit * 60.0;
-    DBG("Playlist limit: " << playlistTotalTimeLimitSecs);
-    playlistData->getChildByName("PLAYLISTINFO")
-                ->setAttribute("PlaylistDurationLimit", playlistTotalTimeLimitSecs);
-    playlistData->writeTo(playlistXmlFile);
-    
-    while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
-        RemoveTrackFromPlaylist(getNumRows() - 1);
+    if (playlistData)
+    {
+        playlistTotalTimeLimitSecs = limit * 60.0;
+        DBG("Playlist limit: " << playlistTotalTimeLimitSecs);
+        playlistData->getChildByName("PLAYLISTINFO")
+                    ->setAttribute("PlaylistDurationLimit", playlistTotalTimeLimitSecs);
+        playlistData->writeTo(playlistXmlFile);
+        
+        while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+            RemoveTrackFromPlaylist(getNumRows() - 1);
+    }
 }
 //-----------------------------------------------------------------------------
 juce::String PlaylistSongViewComponent::secondsToMins(double seconds)
@@ -325,49 +331,52 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
 {
-    std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
-    if (reader)
+    if (dataList)
     {
-        auto lengthInSamples       = reader->lengthInSamples;
-        auto sampleRate            = reader->sampleRate;
-        auto trackDurationSecs     = lengthInSamples/sampleRate;
-        playlistTotalDurationSecs += trackDurationSecs;
-        
-        if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+        std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
+        if (reader)
         {
-            playlistLimitReachedLabel.setVisible(true);
-            playlistLimitReachedLabel.setAlpha(1.0);
-            juce::Desktop::getInstance().getAnimator().fadeOut(&playlistLimitReachedLabel, 4000);
-            playlistTotalDurationSecs -= trackDurationSecs;
-            return;
-        }
+            auto lengthInSamples       = reader->lengthInSamples;
+            auto sampleRate            = reader->sampleRate;
+            auto trackDurationSecs     = lengthInSamples/sampleRate;
+            playlistTotalDurationSecs += trackDurationSecs;
+            
+            if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+            {
+                playlistLimitReachedLabel.setVisible(true);
+                playlistLimitReachedLabel.setAlpha(1.0);
+                juce::Desktop::getInstance().getAnimator().fadeOut(&playlistLimitReachedLabel, 4000);
+                playlistTotalDurationSecs -= trackDurationSecs;
+                return;
+            }
 
-        auto title         = audioFile.getFileNameWithoutExtension().toStdString();
-        auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
-        auto trackDuration = secondsToMins(trackDurationSecs);
-        
-        totalTracksInPlaylist = getNumRows() + 1;
-        UpdateDurationLabel();
-        
-        std::unique_ptr<juce::XmlElement> track;
-        track = std::make_unique<juce::XmlElement>("TRACK");
-        track->setAttribute("No.", totalTracksInPlaylist);
-        track->setAttribute("Title", title);
-        track->setAttribute("Duration", trackDuration);
-        track->setAttribute("FileLocation", audioFile.getFullPathName());
-        track->setAttribute("DurationInSecs", trackDurationSecs);
-        track->setAttribute("UUID", juce::Uuid().toString());
-        dataList    ->addChildElement(track.release());
-        playlistData->getChildByName("PLAYLISTINFO")
-                    ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
-        playlistData->writeTo(playlistXmlFile);
-        track.reset();
-        
-        trackTitles.push_back(title);
-        numRows += 1;
+            auto title         = audioFile.getFileNameWithoutExtension().toStdString();
+            auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
+            auto trackDuration = secondsToMins(trackDurationSecs);
+            
+            totalTracksInPlaylist = getNumRows() + 1;
+            UpdateDurationLabel();
+            
+            std::unique_ptr<juce::XmlElement> track;
+            track = std::make_unique<juce::XmlElement>("TRACK");
+            track->setAttribute("No.", totalTracksInPlaylist);
+            track->setAttribute("Title", title);
+            track->setAttribute("Duration", trackDuration);
+            track->setAttribute("FileLocation", audioFile.getFullPathName());
+            track->setAttribute("DurationInSecs", trackDurationSecs);
+            track->setAttribute("UUID", juce::Uuid().toString());
+            dataList    ->addChildElement(track.release());
+            playlistData->getChildByName("PLAYLISTINFO")
+                        ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
+            playlistData->writeTo(playlistXmlFile);
+            track.reset();
+            
+            trackTitles.push_back(title);
+            numRows += 1;
+        }
+        tableComponent.updateContent();
+        tableComponent.repaint();
     }
-    tableComponent.updateContent();
-    tableComponent.repaint();
 }
 
 //==============================================================================
