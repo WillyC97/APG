@@ -100,7 +100,7 @@ void PlaylistCreationComponent::CreatePlaylist(const juce::String& playlistName)
     playlistFile.create();
     
     juce::XmlElement playlist("APG");
-    auto playlistNameElement = std::make_unique<juce::XmlElement>("PLAYLISTNAME");
+    auto playlistNameElement = std::make_unique<juce::XmlElement>("PLAYLISTINFO");
     playlistNameElement->setAttribute("PlaylistName", playlistName);
     auto data = std::make_unique<juce::XmlElement>("DATA");
     playlist.addChildElement(playlistNameElement.release());
@@ -149,7 +149,7 @@ void PlaylistCreationComponent::SetPlaylistNames()
     for(juce::File& playlist : playlists)
     {
         auto currentPlaylist = juce::XmlDocument::parse(playlist);
-        auto playlistName = currentPlaylist->getChildByName("PLAYLISTNAME")
+        auto playlistName = currentPlaylist->getChildByName("PLAYLISTINFO")
                                            ->getStringAttribute("PlaylistName");
         
         playlistNames.add(std::make_tuple(playlistName, playlist));

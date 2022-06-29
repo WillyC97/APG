@@ -91,21 +91,23 @@ private:
     juce::TextEditor      searchBar;
     juce::TextButton      addButton;
     juce::Label           playlistNameLabel;
+    juce::Label           playlistDurationLabel;
     SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;
     juce::XmlElement* columnList    = nullptr;
     juce::XmlElement* dataList      = nullptr;
-        
-    void        UpdateTrackID();
-    std::string secondsToMins(double seconds);
-        
-    int numRows = 0;
-    int totalTracksInPlaylist;
-    int lastTrackNoPlayed;
-    std::vector<std::string> duration;
-    juce::String             currentTrackUUID;
-    
+
+    void         UpdateTrackID();
+    void         UpdateDurationLabel();
+    juce::String secondsToMins(double seconds);
+
+    int          numRows = 0;
+    int          totalTracksInPlaylist;
+    int          lastTrackNoPlayed;
+    double       playlistTotalDurationSecs = 0.0;
+    juce::String currentTrackUUID;
+
     juce::ListenerList<Listener> listeners;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistSongViewComponent)
