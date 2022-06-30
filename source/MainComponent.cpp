@@ -16,13 +16,15 @@ MainComponent::MainComponent()
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
+    
     playlistSettingsSidePanel.setContent(playlistSettingsComponent.release());
     
     addAndMakeVisible(playlistComponent);
     addAndMakeVisible(playlistCreationComponent);
+    addAndMakeVisible(playlistSettingsButton);
     addChildComponent(waveFormView.get());
     addAndMakeVisible(playlistSettingsSidePanel);
-        
+
     auto playImage         = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                             , BinaryData::play_pngSize);
     auto pauseImage        = juce::ImageCache::getFromMemory( BinaryData::pause_png
@@ -62,7 +64,6 @@ MainComponent::MainComponent()
     {
         playlistSettingsSidePanel.showOrHide(!playlistSettingsSidePanel.isPanelShowing());
     };
-    addAndMakeVisible(playlistSettingsButton);
 
     addAndMakeVisible(transportSlider);
         
