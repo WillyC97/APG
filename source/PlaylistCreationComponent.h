@@ -27,7 +27,12 @@ private:
     
     void LaunchDialogBox();
     
+    void mouseEnter(const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
+    void mouseExit (const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
+    void UpdateRowComponentState(const juce::MouseEvent& event);
+    
     int numPlaylists;
+    int currentHoverRow;
     
     juce::File       lastPlaylistClicked;
     juce::TextButton addPlaylistButton;
