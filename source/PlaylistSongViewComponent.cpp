@@ -269,6 +269,8 @@ void PlaylistSongViewComponent::RemoveTrackFromPlaylist(int row)
         auto track = dataList->getChildElement(row);
         auto trackLen = track->getDoubleAttribute("DurationInSecs");
         playlistTotalDurationSecs -= trackLen;
+        playlistData->getChildByName("PLAYLISTINFO")
+                    ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
         dataList->removeChildElement(track, true);
         totalTracksInPlaylist -= 1;
         numRows -= 1;
