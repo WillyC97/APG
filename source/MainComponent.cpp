@@ -70,7 +70,7 @@ MainComponent::MainComponent()
     
     setAudioChannels(0, 2);
     
-    startTimer(10);
+    startTimerHz(60);
 }
 
 MainComponent::~MainComponent()
