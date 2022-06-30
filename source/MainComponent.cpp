@@ -102,6 +102,9 @@ void MainComponent::releaseResources()
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
+    getLookAndFeel().setColour(juce::SidePanel::backgroundColour, juce::Colour(0xFF1c1c1c));
+    getLookAndFeel().setColour(juce::SidePanel::shadowBaseColour, juce::Colour(0xFF1c1c1c));
+    
     g.fillAll (juce::Colour(0xFF111212));
     
     auto totalBounds = getLocalBounds();
