@@ -27,6 +27,7 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     SetPlaylistNames();
     
     addPlaylistButton.setButtonText("Create Playlist");
+    addPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
     addPlaylistButton.onClick=[this](){ LaunchDialogBox(); };
     addAndMakeVisible(addPlaylistButton);
     
@@ -34,20 +35,30 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     listBox.setModel(this);
     listBox.setColour(juce::ListBox::textColourId,       juce::Colours::ghostwhite);
     listBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xFF111212));
+    listBox.getVerticalScrollBar().setColour( juce::ScrollBar::thumbColourId
+                                            , juce::Colour(0xFFb8b8b8));
     addAndMakeVisible(listBox);
 }
 //==============================================================================
 void PlaylistCreationComponent::paint(juce::Graphics& g)
 {
-    g.setColour(juce::Colours::blue);
+    g.setColour(juce::Colour(0xFF111212));
     g.fillAll();
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::resized()
 {
     auto totalBounds = getLocalBounds();
+    auto widthPadding = totalBounds.proportionOfWidth(0.05);
+    auto heightPadding = totalBounds.proportionOfHeight(0.01);
     auto buttonHeight = totalBounds.proportionOfHeight(0.1);
     auto buttonBounds = totalBounds.removeFromTop(buttonHeight);
+    
+    buttonBounds.removeFromRight(widthPadding);
+    buttonBounds.removeFromLeft(widthPadding);
+    buttonBounds.removeFromBottom(heightPadding);
+    buttonBounds.removeFromTop(heightPadding);
+    
     addPlaylistButton.setBounds(buttonBounds);
     listBox.setBounds(totalBounds);
 }
@@ -89,7 +100,7 @@ void PlaylistCreationComponent::CreatePlaylist(const juce::String& playlistName)
     playlistFile.create();
     
     juce::XmlElement playlist("APG");
-    auto playlistNameElement = std::make_unique<juce::XmlElement>("PLAYLISTNAME");
+    auto playlistNameElement = std::make_unique<juce::XmlElement>("PLAYLISTINFO");
     playlistNameElement->setAttribute("PlaylistName", playlistName);
     auto data = std::make_unique<juce::XmlElement>("DATA");
     playlist.addChildElement(playlistNameElement.release());
@@ -138,7 +149,7 @@ void PlaylistCreationComponent::SetPlaylistNames()
     for(juce::File& playlist : playlists)
     {
         auto currentPlaylist = juce::XmlDocument::parse(playlist);
-        auto playlistName = currentPlaylist->getChildByName("PLAYLISTNAME")
+        auto playlistName = currentPlaylist->getChildByName("PLAYLISTINFO")
                                            ->getStringAttribute("PlaylistName");
         
         playlistNames.add(std::make_tuple(playlistName, playlist));

@@ -29,7 +29,7 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHorizontalScrollBar().setColour( juce::ScrollBar::thumbColourId
                                                      , juce::Colour(0xFFb8b8b8));
     
-    addButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
     
@@ -54,10 +54,15 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
         }
     };
 
+    playlistLimitReachedLabel.setText("Playlist Duration Limit Reached...", juce::dontSendNotification);
+    playlistLimitReachedLabel.setColour(juce::Label::textColourId, juce::Colours::turquoise);
+    
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
     addAndMakeVisible(playlistNameLabel);
+    addAndMakeVisible(playlistDurationLabel);
+    addChildComponent(playlistLimitReachedLabel);
     addAndMakeVisible(sidePanel);
 
     formatManager.registerBasicFormats();
@@ -82,16 +87,22 @@ void PlaylistSongViewComponent::paint(juce::Graphics& g)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::resized()
 {
-    auto totalArea     = getLocalBounds();
-    auto widthPadding  = totalArea.proportionOfWidth(0.01f);
-    auto heightPadding = totalArea.proportionOfHeight(0.01f);
-    auto bannerHeight  = totalArea.proportionOfHeight(0.15);
-    auto bannerArea    = totalArea.removeFromTop(bannerHeight);
-                          bannerArea.removeFromLeft(widthPadding);
-    auto leftBannerArea = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
+    auto totalArea       = getLocalBounds();
+    auto widthPadding    = totalArea.proportionOfWidth(0.01f);
+    auto heightPadding   = totalArea.proportionOfHeight(0.01f);
+    auto bannerHeight    = totalArea.proportionOfHeight(0.15);
+    auto bannerArea      = totalArea.removeFromTop(bannerHeight);
+                            bannerArea.removeFromLeft(widthPadding);
+    auto leftBannerArea  = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
+    auto labelArea       = leftBannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.2));
+    auto durationLblArea = labelArea.removeFromLeft(labelArea.proportionOfWidth(0.5));
     
-    playlistNameLabel.setBounds(leftBannerArea);
-    playlistNameLabel.setFont(Fonts::GetFont(Fonts::Type::SemiBold, bannerHeight));
+    playlistNameLabel        .setBounds(leftBannerArea);
+    playlistDurationLabel    .setBounds(durationLblArea);
+    playlistLimitReachedLabel.setBounds(labelArea);
+    playlistNameLabel        .setFont(Fonts::GetFont(Fonts::Type::SemiBold, leftBannerArea.getHeight()));
+    playlistDurationLabel    .setFont(Fonts::GetFont(Fonts::Type::Thin, labelArea.getHeight()));
+    playlistLimitReachedLabel.setFont(Fonts::GetFont(Fonts::Type::Regular, labelArea.getHeight()));
         
     bannerArea.removeFromRight(widthPadding);
     bannerArea.removeFromBottom(heightPadding);
@@ -164,16 +175,7 @@ juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumb
         deleteButton->setRowAndColumn (rowNumber, columnId);
         auto transparent = juce::Colours::transparentBlack;
         deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
-        deleteButton->ButtonPressed = [=] (int row)
-        {
-            dataList->removeChildElement(dataList->getChildElement(row), true);
-            totalTracksInPlaylist -= 1;
-            numRows -= 1;
-            UpdateTrackID();
-            playlistData->writeTo(playlistXmlFile);
-            tableComponent.updateContent();
-            tableComponent.repaint();
-        };
+        deleteButton->ButtonPressed = [=] (int row) { RemoveTrackFromPlaylist(row); };
         return deleteButton;
     }
 
@@ -225,11 +227,14 @@ void PlaylistSongViewComponent::sortOrderChanged (int newSortColumnId, bool isFo
 {
     if (newSortColumnId != 0)
     {
-        PlaylistDataSorter sorter(tableComponent.getHeader().getColumnName(newSortColumnId), isForwards);
-        dataList->sortChildElements (sorter);
-        UpdateTrackID();
-        playlistData->writeTo(playlistXmlFile);
-        tableComponent.updateContent();
+        if (dataList)
+        {
+            PlaylistDataSorter sorter(tableComponent.getHeader().getColumnName(newSortColumnId), isForwards);
+            dataList->sortChildElements (sorter);
+            UpdateTrackID();
+            playlistData->writeTo(playlistXmlFile);
+            tableComponent.updateContent();
+        }
     }
 }
 //-----------------------------------------------------------------------------
@@ -237,6 +242,12 @@ void PlaylistSongViewComponent::UpdateTrackID()
 {
     for(int i = 0; i < numRows; ++i)
         dataList->getChildElement(i)->setAttribute ("No.", i + 1);
+}
+//-----------------------------------------------------------------------------
+void PlaylistSongViewComponent::UpdateDurationLabel()
+{
+    playlistDurationLabel.setText( "Duration : " + secondsToMins(playlistTotalDurationSecs)
+                                 , juce::dontSendNotification);
 }
 //==============================================================================
 juce::XmlElement* PlaylistSongViewComponent::GetTrack(int index)
@@ -250,17 +261,53 @@ juce::XmlElement* PlaylistSongViewComponent::GetFirstSongInPlaylist()
 {
     return dataList->getFirstChildElement();
 }
+//-----------------------------------------------------------------------------
+void PlaylistSongViewComponent::RemoveTrackFromPlaylist(int row)
+{
+    if (row >= 0)
+    {
+        auto track = dataList->getChildElement(row);
+        auto trackLen = track->getDoubleAttribute("DurationInSecs");
+        playlistTotalDurationSecs -= trackLen;
+        playlistData->getChildByName("PLAYLISTINFO")
+                    ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
+        dataList->removeChildElement(track, true);
+        totalTracksInPlaylist -= 1;
+        numRows -= 1;
+        UpdateTrackID();
+        UpdateDurationLabel();
+        playlistData->writeTo(playlistXmlFile);
+        tableComponent.updateContent();
+        tableComponent.repaint();
+    }
+}
 //==============================================================================
 void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
+
+void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
+{
+    if (playlistData)
+    {
+        playlistTotalTimeLimitSecs = limit * 60.0;
+        DBG("Playlist limit: " << playlistTotalTimeLimitSecs);
+        playlistData->getChildByName("PLAYLISTINFO")
+                    ->setAttribute("PlaylistDurationLimit", playlistTotalTimeLimitSecs);
+        playlistData->writeTo(playlistXmlFile);
+        
+        while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+            RemoveTrackFromPlaylist(getNumRows() - 1);
+    }
+}
 //-----------------------------------------------------------------------------
-std::string PlaylistSongViewComponent::secondsToMins(double seconds)
+juce::String PlaylistSongViewComponent::secondsToMins(double seconds)
 {
     int secs = int(seconds) % 60;
     int mins = (int(seconds) - (secs)) / 60;
-    std::string songLength = std::to_string(mins) + ":" + std::to_string(secs);
+    auto additionalZero = secs < 10 ? "0" : "";
+    auto songLength = juce::String(mins) + ":" + additionalZero + juce::String(secs);
     return songLength;
 }
 //==============================================================================
@@ -269,13 +316,16 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
     if (xmlFile == juce::File() || ! xmlFile.exists())
         return;
 
-    playlistXmlFile   = xmlFile;
-    playlistData      = juce::XmlDocument::parse(xmlFile);
-    dataList          = playlistData->getChildByName("DATA");
-    auto playlistName = playlistData->getChildByName("PLAYLISTNAME")
-                                    ->getStringAttribute("PlaylistName");
-    numRows           = dataList->getNumChildElements();
+    playlistXmlFile            = xmlFile;
+    playlistData               = juce::XmlDocument::parse(xmlFile);
+    dataList                   = playlistData->getChildByName("DATA");
+    auto playlistInfo          = playlistData->getChildByName("PLAYLISTINFO");
+    auto playlistName          = playlistInfo->getStringAttribute("PlaylistName");
+    playlistTotalDurationSecs  = playlistInfo->getDoubleAttribute("PlaylistDurationSecs");
+    playlistTotalTimeLimitSecs = playlistInfo->getDoubleAttribute("PlaylistDurationLimit", 600);
+    numRows                    = dataList->getNumChildElements();
     
+    UpdateDurationLabel();
     playlistNameLabel.setText(playlistName, juce::dontSendNotification);
     tableComponent.updateContent();
     repaint();
@@ -283,33 +333,52 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
 {
-    std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
-    if (reader)
+    if (dataList)
     {
-        auto lengthInSamples = reader->lengthInSamples;
-        auto sampleRate      = reader->sampleRate;
+        std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor(audioFile));
+        if (reader)
+        {
+            auto lengthInSamples       = reader->lengthInSamples;
+            auto sampleRate            = reader->sampleRate;
+            auto trackDurationSecs     = lengthInSamples/sampleRate;
+            playlistTotalDurationSecs += trackDurationSecs;
+            
+            if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
+            {
+                playlistLimitReachedLabel.setVisible(true);
+                playlistLimitReachedLabel.setAlpha(1.0);
+                juce::Desktop::getInstance().getAnimator().fadeOut(&playlistLimitReachedLabel, 4000);
+                playlistTotalDurationSecs -= trackDurationSecs;
+                return;
+            }
 
-        auto title         = audioFile.getFileNameWithoutExtension().toStdString();
-        auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
-        auto trackDuration = secondsToMins(lengthInSamples/sampleRate);
-        totalTracksInPlaylist = getNumRows() + 1;
-        
-        std::unique_ptr<juce::XmlElement> track;
-        track = std::make_unique<juce::XmlElement>("TRACK");
-        track->setAttribute("No.", totalTracksInPlaylist);
-        track->setAttribute("Title", title);
-        track->setAttribute("Duration", trackDuration);
-        track->setAttribute("FileLocation", audioFile.getFullPathName());
-        track->setAttribute("UUID", juce::Uuid().toString());
-        dataList    ->addChildElement(track.release());
-        playlistData->writeTo(playlistXmlFile);
-        track.reset();
-        
-        trackTitles.push_back(title);
-        numRows += 1;
+            auto title         = audioFile.getFileNameWithoutExtension().toStdString();
+            auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
+            auto trackDuration = secondsToMins(trackDurationSecs);
+            
+            totalTracksInPlaylist = getNumRows() + 1;
+            UpdateDurationLabel();
+            
+            std::unique_ptr<juce::XmlElement> track;
+            track = std::make_unique<juce::XmlElement>("TRACK");
+            track->setAttribute("No.", totalTracksInPlaylist);
+            track->setAttribute("Title", title);
+            track->setAttribute("Duration", trackDuration);
+            track->setAttribute("FileLocation", audioFile.getFullPathName());
+            track->setAttribute("DurationInSecs", trackDurationSecs);
+            track->setAttribute("UUID", juce::Uuid().toString());
+            dataList    ->addChildElement(track.release());
+            playlistData->getChildByName("PLAYLISTINFO")
+                        ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
+            playlistData->writeTo(playlistXmlFile);
+            track.reset();
+            
+            trackTitles.push_back(title);
+            numRows += 1;
+        }
+        tableComponent.updateContent();
+        tableComponent.repaint();
     }
-    tableComponent.updateContent();
-    tableComponent.repaint();
 }
 
 //==============================================================================

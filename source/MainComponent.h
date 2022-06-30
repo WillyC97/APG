@@ -8,6 +8,7 @@
 #include "AudioPlayer.h"
 #include "AudioThumbnailComp.h"
 #include "PlaylistCreationComponent.h"
+#include "PlaylistSettingsComponent.h"
 #include "PlaylistSongViewComponent.h"
 #include "TransportSlider.h"
 #include "WaveformView.h"
@@ -70,10 +71,13 @@ private:
     juce::ImageButton             skipForwardButton;
     juce::ImageButton             skipBackwardButton;
     juce::ImageButton             waveformViewButton;
+    juce::TextButton              playlistSettingsButton;
     
     TransportSlider               transportSlider;
         
     TransportState state;
+    std::unique_ptr<PlaylistSettingsComponent> playlistSettingsComponent;
+    juce::SidePanel                            playlistSettingsSidePanel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

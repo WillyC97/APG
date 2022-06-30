@@ -9,15 +9,19 @@ MainComponent::MainComponent()
     , transportSlider(audioPlayer)
     , waveFormView(std::make_unique<WaveformView>( audioFormatManager
                                                  , audioPlayer))
+    , playlistSettingsComponent(std::make_unique<PlaylistSettingsComponent>(playlistComponent))
+    , playlistSettingsSidePanel("Playlist Settings", 400, true)
 {
     addKeyListener(this);
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
+    playlistSettingsSidePanel.setContent(playlistSettingsComponent.release());
     
     addAndMakeVisible(playlistComponent);
     addAndMakeVisible(playlistCreationComponent);
     addChildComponent(waveFormView.get());
+    addAndMakeVisible(playlistSettingsSidePanel);
         
     auto playImage         = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                             , BinaryData::play_pngSize);
@@ -51,6 +55,14 @@ MainComponent::MainComponent()
     waveformViewButton.setClickingTogglesState(true);
     waveformViewButton.onClick=[=](){ waveFormView->setVisible(!waveFormView->isShowing()); };
     addAndMakeVisible(waveformViewButton);
+    
+    playlistSettingsButton.setButtonText("Playlist Settings");
+    playlistSettingsButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    playlistSettingsButton.onClick=[this]()
+    {
+        playlistSettingsSidePanel.showOrHide(!playlistSettingsSidePanel.isPanelShowing());
+    };
+    addAndMakeVisible(playlistSettingsButton);
 
     addAndMakeVisible(transportSlider);
         
@@ -90,12 +102,7 @@ void MainComponent::releaseResources()
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    g.setFont (juce::Font (16.0f));
-    g.setColour (juce::Colours::white);
-    g.drawText ("Hello World!", getLocalBounds(), juce::Justification::centred, true);
+    g.fillAll (juce::Colour(0xFF111212));
     
     auto totalBounds = getLocalBounds();
     auto panelWidth = totalBounds.proportionOfWidth(0.6);
@@ -124,6 +131,7 @@ void MainComponent::resized()
                                   totalBounds.removeFromBottom(transportMargin);
     auto waveformBounds         = totalBounds;
     auto playlistCreationBounds = totalBounds.removeFromLeft(availablePlaylistsBoundsSize);
+    auto playlistSettingsBounds = playlistCreationBounds.removeFromTop(buttonSize);
     auto playlistBounds         = totalBounds;
     
     playButton.setBounds(transportButtonsBounds
@@ -145,6 +153,7 @@ void MainComponent::resized()
     waveformViewButton.setBounds(transportButtonsBounds
                                 .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
     
+    playlistSettingsButton.setBounds(playlistSettingsBounds);
     playlistComponent.setBounds(playlistBounds);
     playlistCreationComponent.setBounds(playlistCreationBounds);
 

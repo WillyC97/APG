@@ -53,6 +53,7 @@ target_sources(APG
         source/MainComponent.h
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
+        source/PlaylistSettingsComponent.h
         source/PlaylistSongViewComponent.cpp
         source/PlaylistSongViewComponent.h
         source/SidePanelWithBrowser.h

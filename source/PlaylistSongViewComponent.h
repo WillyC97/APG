@@ -73,6 +73,8 @@ public:
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; tableComponent.repaint(); }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
     
+    void SetPlaylistLimit(double limit);
+    
     void RowPlayButtonClicked(const int& row);
 
     void AddListener   (Listener &l) { listeners.add(&l); }
@@ -91,21 +93,26 @@ private:
     juce::TextEditor      searchBar;
     juce::TextButton      addButton;
     juce::Label           playlistNameLabel;
+    juce::Label           playlistDurationLabel;
+    juce::Label           playlistLimitReachedLabel;
     SidePanelWithBrowser  sidePanel;
     
     std::unique_ptr<juce::XmlElement> playlistData;
     juce::XmlElement* columnList    = nullptr;
     juce::XmlElement* dataList      = nullptr;
-        
-    void        UpdateTrackID();
-    std::string secondsToMins(double seconds);
-        
-    int numRows = 0;
-    int totalTracksInPlaylist;
-    int lastTrackNoPlayed;
-    std::vector<std::string> duration;
-    juce::String             currentTrackUUID;
-    
+
+    void         UpdateTrackID();
+    void         UpdateDurationLabel();
+    void         RemoveTrackFromPlaylist(int row);
+    juce::String secondsToMins(double seconds);
+
+    int          numRows = 0;
+    int          totalTracksInPlaylist;
+    int          lastTrackNoPlayed;
+    double       playlistTotalDurationSecs = 0.0;
+    double       playlistTotalTimeLimitSecs = 36000.0;
+    juce::String currentTrackUUID;
+
     juce::ListenerList<Listener> listeners;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistSongViewComponent)
