@@ -246,7 +246,7 @@ void PlaylistSongViewComponent::UpdateTrackID()
 //-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::UpdateDurationLabel()
 {
-    playlistDurationLabel.setText( "Duration : " + secondsToMins(playlistTotalDurationSecs)
+    playlistDurationLabel.setText( "Duration : " + secondsToMins(playlistTotalDurationSecs, true)
                                  , juce::dontSendNotification);
 }
 //==============================================================================
@@ -302,13 +302,36 @@ void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
     }
 }
 //-----------------------------------------------------------------------------
-juce::String PlaylistSongViewComponent::secondsToMins(double seconds)
+juce::String PlaylistSongViewComponent::secondsToMins(double seconds, bool asText)
 {
+    juce::String songLengthString = "";
+    juce::String lhs;
+    juce::String rhs;
+    
     int secs = int(seconds) % 60;
     int mins = (int(seconds) - (secs)) / 60;
+    
+    lhs = juce::String(mins);
+    rhs = juce::String(secs);
+    
+    auto lhsDesc = mins > 60 ? " hr "  : " min ";
+    auto rhsDesc = mins > 60 ? " min"  : " sec";
     auto additionalZero = secs < 10 ? "0" : "";
-    auto songLength = juce::String(mins) + ":" + additionalZero + juce::String(secs);
-    return songLength;
+    
+    if (mins > 60)
+    {
+        int hrs = mins / 60;
+        mins = mins % 60;
+        lhs = juce::String(hrs);
+        rhs = juce::String(mins);
+    }
+        
+    if (asText)
+        songLengthString = lhs + lhsDesc + rhs + rhsDesc;
+    else
+        songLengthString = lhs + ":" + additionalZero + rhs;
+    
+    return songLengthString;
 }
 //==============================================================================
 void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
@@ -352,9 +375,9 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
                 return;
             }
 
-            auto title         = audioFile.getFileNameWithoutExtension().toStdString();
-            auto artist        = audioFile.getFileNameWithoutExtension().toStdString();
-            auto trackDuration = secondsToMins(trackDurationSecs);
+            auto title               = audioFile.getFileNameWithoutExtension().toStdString();
+            auto artist              = audioFile.getFileNameWithoutExtension().toStdString();
+            auto trackDurationString = secondsToMins(trackDurationSecs, false);
             
             totalTracksInPlaylist = getNumRows() + 1;
             UpdateDurationLabel();
@@ -363,7 +386,7 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
             track = std::make_unique<juce::XmlElement>("TRACK");
             track->setAttribute("No.", totalTracksInPlaylist);
             track->setAttribute("Title", title);
-            track->setAttribute("Duration", trackDuration);
+            track->setAttribute("Duration", trackDurationString);
             track->setAttribute("FileLocation", audioFile.getFullPathName());
             track->setAttribute("DurationInSecs", trackDurationSecs);
             track->setAttribute("UUID", juce::Uuid().toString());

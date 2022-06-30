@@ -104,7 +104,7 @@ private:
     void         UpdateTrackID();
     void         UpdateDurationLabel();
     void         RemoveTrackFromPlaylist(int row);
-    juce::String secondsToMins(double seconds);
+    juce::String secondsToMins(double seconds, bool asText);
 
     int          numRows = 0;
     int          totalTracksInPlaylist;
