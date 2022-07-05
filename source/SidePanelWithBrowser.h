@@ -15,8 +15,13 @@ public:
                                                           , nullptr
                                                           , nullptr))
     {
+        browser->setColour(juce::FileBrowserComponent::currentPathBoxBackgroundColourId, juce::Colour(0xFF1c1c1c));
+        browser->setColour(juce::FileBrowserComponent::filenameBoxBackgroundColourId, juce::Colour(0xFF1c1c1c));
+        browser->lookAndFeelChanged();
         browser->setFileFilter(filter.get());
         addAndMakeVisible(browser.get());
+        
+        addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
         addButton.setButtonText("Add");
         addButton.setComponentID("add");
         addAndMakeVisible(addButton);

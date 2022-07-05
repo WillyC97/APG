@@ -29,7 +29,7 @@ void AudioThumbnailComp::SetFile(const juce::File& file)
         const juce::Range<double> newRange(0.0, thumbnail.getTotalLength());
         SetRange(newRange);
 
-        startTimerHz(40);
+        startTimerHz(60);
     }
 }
 

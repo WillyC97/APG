@@ -16,13 +16,15 @@ MainComponent::MainComponent()
     audioPlayer.AddListener(*this);
     playlistComponent.AddListener(*this);
     playlistCreationComponent.addChangeListener(this);
+    
     playlistSettingsSidePanel.setContent(playlistSettingsComponent.release());
     
     addAndMakeVisible(playlistComponent);
     addAndMakeVisible(playlistCreationComponent);
+    addAndMakeVisible(playlistSettingsButton);
     addChildComponent(waveFormView.get());
     addAndMakeVisible(playlistSettingsSidePanel);
-        
+
     auto playImage         = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                             , BinaryData::play_pngSize);
     auto pauseImage        = juce::ImageCache::getFromMemory( BinaryData::pause_png
@@ -62,7 +64,6 @@ MainComponent::MainComponent()
     {
         playlistSettingsSidePanel.showOrHide(!playlistSettingsSidePanel.isPanelShowing());
     };
-    addAndMakeVisible(playlistSettingsButton);
 
     addAndMakeVisible(transportSlider);
         
@@ -102,6 +103,10 @@ void MainComponent::releaseResources()
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
+    getLookAndFeel().setColour(juce::SidePanel::backgroundColour, juce::Colour(0xFF1c1c1c));
+    getLookAndFeel().setColour(juce::SidePanel::shadowBaseColour, juce::Colour(0xFF1c1c1c));
+    getLookAndFeel().setColour(juce::DirectoryContentsDisplayComponent::highlightColourId, juce::Colour(0xFF229487));
+    
     g.fillAll (juce::Colour(0xFF111212));
     
     auto totalBounds = getLocalBounds();
@@ -163,6 +168,7 @@ void MainComponent::resized()
 
 void MainComponent::StreamFinished()
 {
+    DBG("Stream Finished");
     if (playlistComponent.getNumRows() > 1)
     {
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();

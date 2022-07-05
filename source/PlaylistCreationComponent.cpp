@@ -33,6 +33,7 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     
     listBox.setRowHeight(40);
     listBox.setModel(this);
+    listBox.addMouseListener(this, true);
     listBox.setColour(juce::ListBox::textColourId,       juce::Colours::ghostwhite);
     listBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xFF111212));
     listBox.getVerticalScrollBar().setColour( juce::ScrollBar::thumbColourId
@@ -44,6 +45,13 @@ void PlaylistCreationComponent::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colour(0xFF111212));
     g.fillAll();
+}
+//------------------------------------------------------------------------------
+void PlaylistCreationComponent::UpdateRowComponentState(const juce::MouseEvent& event)
+{
+    auto e = event.getEventRelativeTo(&listBox);
+    currentHoverRow = listBox.getRowContainingPosition(e.x, e.y);
+    listBox.repaint();
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::resized()
@@ -66,7 +74,7 @@ void PlaylistCreationComponent::resized()
 //==============================================================================
 void PlaylistCreationComponent::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
-    if (rowIsSelected)
+    if (rowIsSelected || currentHoverRow == rowNumber)
         g.setColour(juce::Colours::ghostwhite);
     else
         g.setColour(juce::Colour(0xFFb8b8b8));
