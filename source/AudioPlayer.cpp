@@ -74,8 +74,6 @@ void AudioPlayer::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferTo
     transportSource.getNextAudioBlock(bufferToFill);
     
     streamFinished = transportSource.hasStreamFinished();
-    if (streamFinished)
-        transportSource.setPosition(0);
 }
 
 /** allows the source to release anything it no longer needs after playback has stopped */

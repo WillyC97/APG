@@ -45,9 +45,19 @@ create_project_using_cmake()
 
     print_banner "Generating project files from CMake"
     mkdir -p $BUILD_OUTPUT_DIR  > /dev/null 2>&1 || abort "Failed to create project folder"
-  # Creates the Xcode project -S: CMakeLists location  -B: directory to place build files
-    cmake -G Xcode -S $APG_ROOT -B $BUILD_OUTPUT_DIR \
-    -DJUCE_DIR=$JUCE_DIR -DBUILD_OUTPUT_DIR=$BUILD_OUTPUT_DIR
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        GENERATOR="Xcode"
+        ADDITIONAL_BUILD_FLAGS=""
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        GENERATOR="Unix Makefiles"
+        ADDITIONAL_BUILD_FLAGS="-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
+    fi
+
+  # Creates the project -S: CMakeLists location  -B: directory to place build files
+    cmake -G "$GENERATOR" -S $APG_ROOT -B $BUILD_OUTPUT_DIR \
+    -DJUCE_DIR=$JUCE_DIR -DBUILD_OUTPUT_DIR=$BUILD_OUTPUT_DIR \
+    $ADDITIONAL_BUILD_FLAGS
 }
 #------------------------------------------------------------------------------
 build_project()

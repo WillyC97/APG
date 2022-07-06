@@ -10,8 +10,10 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
 : formatManager(_formatManager)
 , sidePanel(this)
 {
-    auto& lnf = getLookAndFeel();
-    lnf.setDefaultSansSerifTypeface(lnf.getTypefaceForFont(Fonts::GetFont(Fonts::Regular, 14.f)));
+    #ifndef JUCE_LINUX
+        auto& lnf = getLookAndFeel();
+        lnf.setDefaultSansSerifTypeface(lnf.getTypefaceForFont(Fonts::GetFont(Fonts::Regular, 14.f)));
+    #endif
     
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
