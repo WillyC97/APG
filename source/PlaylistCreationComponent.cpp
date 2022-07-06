@@ -11,7 +11,7 @@ namespace
     {
         #ifdef JUCE_MAC
             juce::File fullPath = UserAppData.getChildFile("Application Support/APG/");
-        #elif JUCE_WINDOWS
+        #elif defined(JUCE_WINDOWS) || defined(JUCE_LINUX)
             juce::File fullPath = UserAppData.getChildFile("APG/");
         #endif
         return fullPath;

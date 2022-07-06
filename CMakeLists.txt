@@ -90,8 +90,6 @@ target_compile_definitions(APG
 juce_add_binary_data(BinaryData
       SOURCES
           resources/cross.png
-          resources/play.svg
-          resources/pause.svg
           resources/play.png
           resources/pause.png
           resources/skip_forward.png
