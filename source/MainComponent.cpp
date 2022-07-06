@@ -71,7 +71,7 @@ MainComponent::MainComponent()
     
     setAudioChannels(0, 2);
     
-    startTimer(10);
+    startTimerHz(60);
 }
 
 MainComponent::~MainComponent()
@@ -168,7 +168,7 @@ void MainComponent::resized()
 
 void MainComponent::StreamFinished()
 {
-    DBG("Stream Finished");
+    audioPlayer.SetTransportPosition(0.0);
     if (playlistComponent.getNumRows() > 1)
     {
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
