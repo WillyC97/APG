@@ -43,6 +43,8 @@ PlaylistCreationComponent::PlaylistCreationComponent()
 //==============================================================================
 void PlaylistCreationComponent::paint(juce::Graphics& g)
 {
+    getLookAndFeel().setColour(juce::PopupMenu::backgroundColourId, juce::Colour(0xFF212121));
+    getLookAndFeel().setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(0xFF878787));
     g.setColour(juce::Colour(0xFF111212));
     g.fillAll();
 }
@@ -94,6 +96,35 @@ void PlaylistCreationComponent::selectedRowsChanged(int lastRowSelected)
 {
     lastPlaylistClicked = std::get<1>(playlistNames[lastRowSelected]);
     sendChangeMessage();
+}
+
+void PlaylistCreationComponent::listBoxItemClicked(int /*row*/, const juce::MouseEvent& e)
+{
+    if(e.mods.isRightButtonDown())
+    {
+        juce::PopupMenu m;
+        m.addItem (1, "Delete Playlist");
+
+        m.showMenuAsync (juce::PopupMenu::Options(),
+                        [this] (int result)
+                        {
+                            if (result == 0)
+                            {
+                                DBG("user dismissed the menu without picking anything");
+                            }
+                            else if (result == 1)
+                            {
+                                if (getNumRows() != 1)
+                                {
+                                    lastPlaylistClicked.deleteFile();
+                                    SetPlaylistNames();
+                                    UpdateNumPlaylists();
+                                    listBox.updateContent();
+                                    selectedRowsChanged(0);
+                                }
+                            }
+                        });
+    }
 }
 //==============================================================================
 juce::File& PlaylistCreationComponent::GetPlaylist()
