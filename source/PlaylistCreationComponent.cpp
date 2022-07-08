@@ -134,7 +134,8 @@ juce::File& PlaylistCreationComponent::GetPlaylist()
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::CreatePlaylist(const juce::String& playlistName)
 {
-    auto playlistFileName = "Playlist" + juce::String(numPlaylists) + ".xml";
+    auto date = juce::Time::getCurrentTime().toISO8601(true);
+    auto playlistFileName = "Playlist-" + date + ".xml";
     auto playlistFile     = playlistXmlLocation().getChildFile(playlistFileName);
     playlistFile.create();
     
