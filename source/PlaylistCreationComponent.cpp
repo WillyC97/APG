@@ -28,7 +28,7 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     
     addPlaylistButton.setButtonText("Create Playlist");
     addPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
-    addPlaylistButton.onClick=[this](){ LaunchDialogBox(); };
+    addPlaylistButton.onClick=[this](){ LaunchDialogBox(true); };
     addAndMakeVisible(addPlaylistButton);
     
     listBox.setRowHeight(40);
@@ -97,16 +97,17 @@ void PlaylistCreationComponent::selectedRowsChanged(int lastRowSelected)
     lastPlaylistClicked = std::get<1>(playlistNames[lastRowSelected]);
     sendChangeMessage();
 }
-
-void PlaylistCreationComponent::listBoxItemClicked(int /*row*/, const juce::MouseEvent& e)
+//------------------------------------------------------------------------------
+void PlaylistCreationComponent::listBoxItemClicked(int row, const juce::MouseEvent& e)
 {
     if(e.mods.isRightButtonDown())
     {
         juce::PopupMenu m;
         m.addItem (1, "Delete Playlist");
+        m.addItem(2, "Rename Playlist");
 
         m.showMenuAsync (juce::PopupMenu::Options(),
-                        [this] (int result)
+                         [=] (int result)
                         {
                             if (result == 0)
                             {
@@ -117,11 +118,14 @@ void PlaylistCreationComponent::listBoxItemClicked(int /*row*/, const juce::Mous
                                 if (getNumRows() != 1)
                                 {
                                     lastPlaylistClicked.deleteFile();
-                                    SetPlaylistNames();
-                                    UpdateNumPlaylists();
-                                    listBox.updateContent();
+                                    UpdateContent();
                                     selectedRowsChanged(0);
                                 }
+                            }
+                            else if (result == 2)
+                            {
+                                LaunchDialogBox(false);
+                                selectedRowsChanged(row);
                             }
                         });
     }
@@ -146,9 +150,15 @@ void PlaylistCreationComponent::CreatePlaylist(const juce::String& playlistName)
     playlist.addChildElement(playlistNameElement.release());
     playlist.addChildElement(data.release());
     playlist.writeTo(playlistFile);
-    SetPlaylistNames();
-    UpdateNumPlaylists();
-    listBox.updateContent();
+    UpdateContent();
+}
+//------------------------------------------------------------------------------
+void PlaylistCreationComponent::UpdatePlaylistName(const juce::String &playlistName)
+{
+    auto playlist = juce::XmlDocument::parse(lastPlaylistClicked);
+    playlist->getChildByName("PLAYLISTINFO")->setAttribute("PlaylistName", playlistName);
+    playlist->writeTo(lastPlaylistClicked);
+    UpdateContent();
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::UpdateNumPlaylists()
@@ -156,9 +166,17 @@ void PlaylistCreationComponent::UpdateNumPlaylists()
     numPlaylists = playlistXmlLocation().getNumberOfChildFiles(juce::File::TypesOfFileToFind::findFiles, "*.xml");
 }
 //------------------------------------------------------------------------------
-void PlaylistCreationComponent::LaunchDialogBox()
+void PlaylistCreationComponent::UpdateContent()
+{
+    SetPlaylistNames();
+    UpdateNumPlaylists();
+    listBox.updateContent();
+}
+//------------------------------------------------------------------------------
+void PlaylistCreationComponent::LaunchDialogBox(bool createPlaylist)
 {
     juce::AlertWindow aw("Create Playlist", "Create Playlist", juce::AlertWindow::QuestionIcon, this);
+    
     auto initialText = "My Playlist " + juce::String(numPlaylists);
     aw.addTextEditor("name", initialText, "Preset name");
     aw.addButton("OK",     1, juce::KeyPress(juce::KeyPress::returnKey));
@@ -177,7 +195,10 @@ void PlaylistCreationComponent::LaunchDialogBox()
             return;
         }
         
-        CreatePlaylist(playlistName);
+        if (createPlaylist)
+            CreatePlaylist(playlistName);
+        else
+            UpdatePlaylistName(playlistName);
     }
 }
 //------------------------------------------------------------------------------

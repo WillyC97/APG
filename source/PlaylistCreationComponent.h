@@ -22,11 +22,13 @@ public:
     juce::File& GetPlaylist();
     
 private:
-    void CreatePlaylist(const juce::String& playlistName);
+    void CreatePlaylist    (const juce::String& playlistName);
+    void UpdatePlaylistName(const juce::String& playlistName);
     void SetPlaylistNames();
     void UpdateNumPlaylists();
+    void UpdateContent();
     
-    void LaunchDialogBox();
+    void LaunchDialogBox(bool createPlaylist);
     
     void mouseEnter(const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
     void mouseExit (const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
