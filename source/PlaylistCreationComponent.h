@@ -17,15 +17,18 @@ public:
     int getNumRows() override;
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged(int lastRowSelected) override;
+    void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
     
     juce::File& GetPlaylist();
     
 private:
-    void CreatePlaylist(const juce::String& playlistName);
+    void CreatePlaylist    (const juce::String& playlistName);
+    void UpdatePlaylistName(const juce::String& playlistName);
     void SetPlaylistNames();
     void UpdateNumPlaylists();
+    void UpdateContent();
     
-    void LaunchDialogBox();
+    void LaunchDialogBox(bool createPlaylist);
     
     void mouseEnter(const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
     void mouseExit (const juce::MouseEvent& event) override { UpdateRowComponentState(event); }

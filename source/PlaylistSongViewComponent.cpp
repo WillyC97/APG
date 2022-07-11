@@ -35,6 +35,12 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
     
+    auto transparent = juce::Colours::transparentBlack;
+    auto settingsButtonImage = juce::ImageCache::getFromMemory(BinaryData::settings_png, BinaryData::settings_pngSize);
+    settingsButton.setImages(false, true, true, settingsButtonImage, 1.f, transparent, settingsButtonImage,
+                             1.f, juce::Colours::white, settingsButtonImage, 0.8f, transparent);
+    settingsButton.onClick=[this](){ SettingsButtonClicked(); };
+    
     searchBar.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xFF878787));
     searchBar.setColour(juce::TextEditor::textColourId, juce::Colours::ghostwhite);
     searchBar.setColour(juce::TextEditor::outlineColourId, juce::Colours::transparentWhite);
@@ -62,6 +68,7 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
+    addAndMakeVisible(settingsButton);
     addAndMakeVisible(playlistNameLabel);
     addAndMakeVisible(playlistDurationLabel);
     addChildComponent(playlistLimitReachedLabel);
@@ -105,10 +112,13 @@ void PlaylistSongViewComponent::resized()
     playlistNameLabel        .setFont(Fonts::GetFont(Fonts::Type::SemiBold, leftBannerArea.getHeight()));
     playlistDurationLabel    .setFont(Fonts::GetFont(Fonts::Type::Thin, labelArea.getHeight()));
     playlistLimitReachedLabel.setFont(Fonts::GetFont(Fonts::Type::Regular, labelArea.getHeight()));
-        
+    
+    auto settingsButtonArea = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.1));
+    bannerArea.removeFromLeft(widthPadding);
     bannerArea.removeFromRight(widthPadding);
     bannerArea.removeFromBottom(heightPadding);
     addButton.setBounds(bannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.5)));
+    settingsButton.setBounds(settingsButtonArea.removeFromBottom(settingsButtonArea.proportionOfHeight(0.5)));
     bannerArea.removeFromTop(heightPadding);
     bannerArea.removeFromBottom(heightPadding);
     searchBar.setBounds(bannerArea);
@@ -218,6 +228,26 @@ void PlaylistSongViewComponent::buttonClicked(juce::Button* button)
         for(auto id : files)
             insertTracks(id);
     }
+}
+void PlaylistSongViewComponent::SettingsButtonClicked()
+{
+    juce::PopupMenu m;
+    m.addItem (1, "Clear Playlist");
+
+    m.showMenuAsync (juce::PopupMenu::Options(),
+                    [this] (int result)
+                    {
+                        if (result == 0)
+                        {
+                            DBG("user dismissed the menu without picking anything");
+                        }
+                        else if (result == 1)
+                        {
+                            auto currentRows = getNumRows() - 1;
+                            for (int i = currentRows; i >= 0; i--)
+                                RemoveTrackFromPlaylist(i);
+                        }
+                    });
 }
 //==============================================================================
 int PlaylistSongViewComponent::getNumRows()

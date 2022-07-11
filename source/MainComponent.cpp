@@ -169,10 +169,12 @@ void MainComponent::resized()
 void MainComponent::StreamFinished()
 {
     audioPlayer.SetTransportPosition(0.0);
-    if (playlistComponent.getNumRows() > 1)
+    auto currentNumRows = playlistComponent.getNumRows();
+    if (currentNumRows > 1)
     {
         auto lastSongPlayedTrackNo      = playlistComponent.GetLastTrackNoPlayed();
-        if (playlistComponent.getNumRows() != lastSongPlayedTrackNo)
+        if ((currentNumRows != lastSongPlayedTrackNo) &&
+            (currentNumRows >= lastSongPlayedTrackNo))
         {
             auto track = playlistComponent.GetTrack(lastSongPlayedTrackNo);
             LoadAndPlayTrack(*track);

@@ -92,6 +92,7 @@ juce_add_binary_data(BinaryData
           resources/cross.png
           resources/play.png
           resources/pause.png
+          resources/settings.png
           resources/skip_forward.png
           resources/skip_backward.png
           resources/waveform.png)

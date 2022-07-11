@@ -92,6 +92,7 @@ private:
     juce::TableListBox    tableComponent;
     juce::TextEditor      searchBar;
     juce::TextButton      addButton;
+    juce::ImageButton     settingsButton;
     juce::Label           playlistNameLabel;
     juce::Label           playlistDurationLabel;
     juce::Label           playlistLimitReachedLabel;
@@ -105,6 +106,7 @@ private:
     void         UpdateDurationLabel();
     void         RemoveTrackFromPlaylist(int row);
     juce::String secondsToMins(double seconds, bool asText);
+    void         SettingsButtonClicked();
 
     int          numRows = 0;
     int          totalTracksInPlaylist;
