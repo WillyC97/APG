@@ -318,7 +318,7 @@ void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
-
+//-----------------------------------------------------------------------------
 void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
 {
     if (playlistData)
@@ -332,6 +332,12 @@ void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
         while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
             RemoveTrackFromPlaylist(getNumRows() - 1);
     }
+}
+//-----------------------------------------------------------------------------
+double PlaylistSongViewComponent::GetPlaylistLimit()
+{
+    return playlistData->getChildByName("PLAYLISTINFO")
+                       ->getDoubleAttribute("PlaylistDurationLimit");
 }
 //-----------------------------------------------------------------------------
 juce::String PlaylistSongViewComponent::secondsToMins(double seconds, bool asText)
@@ -383,6 +389,7 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
     UpdateDurationLabel();
     playlistNameLabel.setText(playlistName, juce::dontSendNotification);
     tableComponent.updateContent();
+    sendChangeMessage();
     repaint();
 }
 //-----------------------------------------------------------------------------
