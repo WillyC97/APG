@@ -9,6 +9,7 @@ class PlaylistSongViewComponent
     : public juce::Component
     , public juce::TableListBoxModel
     , public juce::Button::Listener
+    , public juce::ChangeBroadcaster
 {
 public:
     //==============================================================================
@@ -73,7 +74,8 @@ public:
     void SetLastTrackNoPlayed(int trackNo) { lastTrackNoPlayed = trackNo; tableComponent.repaint(); }
     int  GetLastTrackNoPlayed()            { return lastTrackNoPlayed; }
     
-    void SetPlaylistLimit(double limit);
+    void   SetPlaylistLimit(double limit);
+    double GetPlaylistLimit();
     
     void RowPlayButtonClicked(const int& row);
 
