@@ -1,5 +1,25 @@
 # CMakeLists.txt for Automated Playlist Generation Player
 
+# ==================================================================================================
+# Helpers
+function(apply_mac_compile_options _target)
+    message("-- Adding mac compile options")
+
+    FIND_PACKAGE(ZLIB)
+    FIND_PACKAGE(Iconv)
+
+    message("    -- Libiconv found: ${Iconv_FOUND}")
+    message("    -- zlib found:     ${ZLIB_FOUND}")
+    message("")
+
+    target_link_libraries(${_target} PRIVATE Iconv::Iconv
+                                             ZLIB::ZLIB)
+
+    # Ensure Xcode doesn't randomly attempt to codesign
+    set_target_properties( ${_target} PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
+endfunction()
+#---------------------------------------------------------------------------------------------------
+
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.5" CACHE STRING "Minimum OS X deployment version")
 
@@ -46,6 +66,7 @@ target_sources(APG
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
         source/AudioThumbnailComp.h
+        source/BpmDetector.h
         source/Fonts.h
         source/FontsPoppins.cpp
         source/FontsPoppins.h
@@ -103,12 +124,40 @@ juce_add_binary_data(BinaryData
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+target_include_directories( APG
+                            PRIVATE
+                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/eigen3"
+                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/"
+                            "/Users/williamchambers/Developer/APG/external/essentia/src/essentia/"
+                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/lame/"
+                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/taglib/")
+
+target_link_directories( APG
+                         PRIVATE
+                         "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/lib"
+                         "/Users/williamchambers/Developer/APG/external/essentia/build/src/")
+
 target_link_libraries(APG
     PRIVATE
         BinaryData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
         juce::juce_audio_utils
+        essentia
+        yaml
+        avcodec
+        avformat
+        avutil
+        samplerate
+        swresample
+        fftw3f
+        mp3lame
+        chromaprint
+        tag
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+if (APPLE)
+      apply_mac_compile_options(APG)
+endif()

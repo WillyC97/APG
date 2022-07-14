@@ -7,6 +7,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
 #include "AudioThumbnailComp.h"
+#include "BpmDetector.h"
 #include "PlaylistCreationComponent.h"
 #include "PlaylistSettingsComponent.h"
 #include "PlaylistSongViewComponent.h"
@@ -58,6 +59,7 @@ private:
     void LoadAndPlayTrack(const juce::XmlElement& track);
     
     AudioPlayer                   audioPlayer;
+    BpmDetector                   bpmDetector;
     std::unique_ptr<WaveformView> waveFormView;
     juce::AudioFormatManager      audioFormatManager;
     juce::AudioTransportSource    transportSource;
