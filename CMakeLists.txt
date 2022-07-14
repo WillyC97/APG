@@ -28,6 +28,9 @@ project(APG VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(ESSENTIA_DIR             "${CMAKE_CURRENT_LIST_DIR}/external/essentia")
+set(ESSENENTIA_3RD_PARTY_DIR "${ESSENTIA_DIR}/packaging/debian_3rdparty")
+
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
 add_subdirectory("${JUCE_DIR}")
@@ -126,16 +129,17 @@ juce_add_binary_data(BinaryData
 
 target_include_directories( APG
                             PRIVATE
-                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/eigen3"
-                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/"
-                            "/Users/williamchambers/Developer/APG/external/essentia/src/essentia/"
-                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/lame/"
-                            "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/include/taglib/")
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/eigen3"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/lame/"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/taglib/"
+                            "${ESSENTIA_DIR}/src/essentia/")
+
 
 target_link_directories( APG
                          PRIVATE
-                         "/Users/williamchambers/Developer/APG/external/essentia/packaging/debian_3rdparty/lib"
-                         "/Users/williamchambers/Developer/APG/external/essentia/build/src/")
+                         "${ESSENENTIA_3RD_PARTY_DIR}/lib"
+                         "${ESSENTIA_DIR}/build/src/")
 
 target_link_libraries(APG
     PRIVATE
