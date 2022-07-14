@@ -3,4 +3,4 @@
 	url = https://github.com/juce-framework/JUCE.git
 [submodule "external/essentia"]
 	path = external/essentia
-	url = https://github.com/MTG/essentia.git
+	url = git@github.com:WillyC97/essentia.git
