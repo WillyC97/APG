@@ -79,8 +79,8 @@ target_sources(APG
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
         source/PlaylistSettingsComponent.h
-        source/PlaylistSongViewComponent.cpp
-        source/PlaylistSongViewComponent.h
+        source/PlaylistTrackManagerComponent.cpp
+        source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
         source/TransportSlider.h
         source/WaveformView.cpp
@@ -134,7 +134,6 @@ target_include_directories( APG
                             "${ESSENENTIA_3RD_PARTY_DIR}/include/lame/"
                             "${ESSENENTIA_3RD_PARTY_DIR}/include/taglib/"
                             "${ESSENTIA_DIR}/src/essentia/")
-
 
 target_link_directories( APG
                          PRIVATE
