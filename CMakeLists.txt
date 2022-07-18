@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
+if(NOT EXISTS ${JUCE_DIR})
+    message(FATAL_ERROR "Missing JUCE path. Set using JUCE_DIR variable")
+endif()
 add_subdirectory("${JUCE_DIR}")
 
 # juce_set_vst2_sdk_path(...)
