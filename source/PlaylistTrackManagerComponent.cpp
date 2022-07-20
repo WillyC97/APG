@@ -450,6 +450,8 @@ void PlaylistTrackManagerComponent::ExtractBPM()
     MIR = std::make_unique<MIRProcessThread>(dataList);
     MIR->runThread();
     playlistData->writeTo(playlistXmlFile);
+    tableComponent.updateContent();
+    tableComponent.repaint();
 }
 //==============================================================================
 //Mark - TableImageButtonCustomComponent

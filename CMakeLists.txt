@@ -2,8 +2,8 @@
 
 # ==================================================================================================
 # Helpers
-function(apply_mac_compile_options _target)
-    message("-- Adding mac compile options")
+function(apply_additional_compile_options _target)
+    message("-- Adding additional compile options")
 
     FIND_PACKAGE(ZLIB)
     FIND_PACKAGE(Iconv)
@@ -16,7 +16,13 @@ function(apply_mac_compile_options _target)
                                              ZLIB::ZLIB)
 
     # Ensure Xcode doesn't randomly attempt to codesign
-    set_target_properties( ${_target} PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
+    if (APPLE)
+         set_target_properties( APG PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
+    endif()
+
+    if(UNIX AND NOT APPLE)
+        target_compile_definitions(APG PRIVATE JUCE_USE_MP3AUDIOFORMAT=1)
+    endif()
 endfunction()
 #---------------------------------------------------------------------------------------------------
 
@@ -33,6 +39,9 @@ set(ESSENENTIA_3RD_PARTY_DIR "${ESSENTIA_DIR}/packaging/debian_3rdparty")
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
+if(NOT EXISTS ${JUCE_DIR})
+    message(FATAL_ERROR "Missing JUCE path. Set using JUCE_DIR variable")
+endif()
 add_subdirectory("${JUCE_DIR}")
 
 # juce_set_vst2_sdk_path(...)
@@ -149,20 +158,18 @@ target_link_libraries(APG
         juce::juce_audio_utils
         essentia
         yaml
-        avcodec
         avformat
-        avutil
-        samplerate
+        avcodec
         swresample
+        samplerate
+        avutil
+        chromaprint
         fftw3f
         mp3lame
-        chromaprint
         tag
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-if (APPLE)
-      apply_mac_compile_options(APG)
-endif()
+apply_additional_compile_options(APG)
