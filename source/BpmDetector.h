@@ -29,7 +29,7 @@ using namespace essentia::scheduler;
 class BpmDetector
 {
 public :
-    void CalculateBpm(std::string audioFilename)
+    float CalculateBpm(const std::string& audioFilename)
     {
         // register the algorithms in the factory(ies)
         essentia::init();
@@ -71,5 +71,7 @@ public :
         std::cout << "ticks detection confidence: " << pool.value<Real>("rhythm.ticks_confidence") << std::endl;
 
         essentia::shutdown();
+        
+        return pool.value<Real>("rhythm.bpm");
     }
 };

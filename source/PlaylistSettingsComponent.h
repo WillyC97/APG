@@ -40,8 +40,14 @@ public:
             SetLabelText();
         };
         applyLimitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+        
+        findBPMButton.setButtonText("Find BPM of Tracks");
+        findBPMButton.onClick=[this](){ trackManager.ExtractBPM(); };
+        findBPMButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+        
         addAndMakeVisible(playlistLengthSlider);
         addAndMakeVisible(applyLimitButton);
+        addAndMakeVisible(findBPMButton);
         
         SetLabelText();
         addAndMakeVisible(currentLimitLabel);
@@ -64,6 +70,8 @@ public:
         currentLimitLabel   .setFont(Fonts::GetFont(Fonts::Type::Regular, compHeight/2));
         playlistLengthSlider.setBounds(totalBounds.removeFromTop(compHeight));
         applyLimitButton    .setBounds(totalBounds.removeFromTop(compHeight));
+        totalBounds         .removeFromTop(compHeight/2);
+        findBPMButton       .setBounds(totalBounds.removeFromTop(compHeight));
     }
     
     void changeListenerCallback (juce::ChangeBroadcaster* source) override
@@ -84,7 +92,7 @@ public:
 private:
     PlaylistTrackManagerComponent& trackManager;
     juce::Slider                   playlistLengthSlider;
-    juce::TextButton               playlistBPMButton;
+    juce::TextButton               findBPMButton;
     juce::TextButton               applyLimitButton;
     juce::Label                    currentLimitLabel;
 };

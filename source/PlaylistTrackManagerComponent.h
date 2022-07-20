@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "SidePanelWithBrowser.h"
+#include "MIR.h"
 
 class PlaylistTrackManagerComponent
     : public juce::Component
@@ -83,6 +84,8 @@ public:
     void RemoveListener(Listener &l) { listeners.remove(&l); }
     
     void LoadPlaylist(const juce::File& xmlFile);
+    
+    void ExtractBPM();
     //==============================================================================
 private:
     class PlaylistDataSorter;

@@ -240,9 +240,7 @@ void MainComponent::LoadAndPlayTrack(const juce::XmlElement& track)
     juce::File filePath = track.getStringAttribute("FileLocation");
     auto trackNo  = track.getStringAttribute("No.").getIntValue();
     DBG(filePath.getFullPathName());
-    
-    bpmDetector.CalculateBpm(filePath.getFullPathName().toStdString());
-    
+        
     audioPlayer.load(filePath);
     waveFormView->SetFile(filePath);
     transportSlider.SetRange();

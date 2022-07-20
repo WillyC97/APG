@@ -76,6 +76,8 @@ target_sources(APG
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
+        source/MIR.cpp
+        source/MIR.h
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
         source/PlaylistSettingsComponent.h
