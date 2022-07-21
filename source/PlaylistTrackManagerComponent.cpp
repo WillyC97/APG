@@ -446,12 +446,15 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
 //-----------------------------------------------------------------------------
 void PlaylistTrackManagerComponent::ExtractBPM()
 {
-    std::unique_ptr<MIRProcessThread> MIR;
-    MIR = std::make_unique<MIRProcessThread>(dataList);
-    MIR->runThread();
-    playlistData->writeTo(playlistXmlFile);
-    tableComponent.updateContent();
-    tableComponent.repaint();
+    if(playlistData)
+    {
+        std::unique_ptr<MIRProcessThread> MIR;
+        MIR = std::make_unique<MIRProcessThread>(dataList);
+        MIR->runThread();
+        playlistData->writeTo(playlistXmlFile);
+        tableComponent.updateContent();
+        tableComponent.repaint();
+    }
 }
 //==============================================================================
 //Mark - TableImageButtonCustomComponent
