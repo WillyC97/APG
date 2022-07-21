@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_gui_extra/juce_gui_extra.h>
-#include "PlaylistSongViewComponent.h"
+#include "PlaylistTrackManagerComponent.h"
 #include "Fonts.h"
 
 using namespace APG::internal;
@@ -18,10 +18,10 @@ class PlaylistSettingsComponent
     , public juce::ChangeListener
 {
 public:
-    PlaylistSettingsComponent(PlaylistSongViewComponent& songViewCompToUse)
-    : songViewComp(songViewCompToUse)
+    PlaylistSettingsComponent(PlaylistTrackManagerComponent& trackManagerToUse)
+    : trackManager(trackManagerToUse)
     {
-        songViewComp.addChangeListener(this);
+        trackManager.addChangeListener(this);
         
         playlistLengthSlider.setColour(juce::Slider::trackColourId,      juce::Colours::turquoise);
         playlistLengthSlider.setColour(juce::Slider::thumbColourId,      juce::Colours::whitesmoke);
@@ -36,12 +36,18 @@ public:
         applyLimitButton.setButtonText("Apply Length Limit");
         applyLimitButton.onClick=[this]()
         {
-            songViewComp.SetPlaylistLimit(playlistLengthSlider.getValue());
+            trackManager.SetPlaylistLimit(playlistLengthSlider.getValue());
             SetLabelText();
         };
         applyLimitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+        
+        findBPMButton.setButtonText("Find BPM of Tracks");
+        findBPMButton.onClick=[this](){ trackManager.ExtractBPM(); };
+        findBPMButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+        
         addAndMakeVisible(playlistLengthSlider);
         addAndMakeVisible(applyLimitButton);
+        addAndMakeVisible(findBPMButton);
         
         SetLabelText();
         addAndMakeVisible(currentLimitLabel);
@@ -64,13 +70,15 @@ public:
         currentLimitLabel   .setFont(Fonts::GetFont(Fonts::Type::Regular, compHeight/2));
         playlistLengthSlider.setBounds(totalBounds.removeFromTop(compHeight));
         applyLimitButton    .setBounds(totalBounds.removeFromTop(compHeight));
+        totalBounds         .removeFromTop(compHeight/2);
+        findBPMButton       .setBounds(totalBounds.removeFromTop(compHeight));
     }
     
     void changeListenerCallback (juce::ChangeBroadcaster* source) override
     {
-        if (source == &songViewComp)
+        if (source == &trackManager)
         {
-            playlistLengthSlider.setValue(songViewComp.GetPlaylistLimit() / 60);
+            playlistLengthSlider.setValue(trackManager.GetPlaylistLimit() / 60);
             SetLabelText();
         }
     }
@@ -82,9 +90,9 @@ public:
     }
     
 private:
-    PlaylistSongViewComponent& songViewComp;
-    juce::Slider               playlistLengthSlider;
-    juce::TextButton           playlistBPMButton;
-    juce::TextButton           applyLimitButton;
-    juce::Label                currentLimitLabel;
+    PlaylistTrackManagerComponent& trackManager;
+    juce::Slider                   playlistLengthSlider;
+    juce::TextButton               findBPMButton;
+    juce::TextButton               applyLimitButton;
+    juce::Label                    currentLimitLabel;
 };

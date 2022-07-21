@@ -1,12 +1,12 @@
 #include <algorithm>
 
-#include "PlaylistSongViewComponent.h"
+#include "PlaylistTrackManagerComponent.h"
 #include "BinaryData.h"
 #include "Fonts.h"
 
 using namespace APG::internal;
 
-PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager)
+PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
 , sidePanel(this)
 {
@@ -18,8 +18,9 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
     tableComponent.getHeader().addColumn("Duration", 3, 200);
-    tableComponent.getHeader().addColumn("Play",     4, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove",   5, 65, 65, 65);
+    tableComponent.getHeader().addColumn("BPM",      4, 12);
+    tableComponent.getHeader().addColumn("Play",     5, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Remove",   6, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
@@ -77,7 +78,7 @@ PlaylistSongViewComponent::PlaylistSongViewComponent(juce::AudioFormatManager& _
     formatManager.registerBasicFormats();
 }
 //==============================================================================
-void PlaylistSongViewComponent::paint(juce::Graphics& g)
+void PlaylistTrackManagerComponent::paint(juce::Graphics& g)
 {
     getLookAndFeel().setColour(juce::TableListBox::backgroundColourId,         juce::Colour(0xFF1c1c1c));
     getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF1c1c1c));
@@ -94,7 +95,7 @@ void PlaylistSongViewComponent::paint(juce::Graphics& g)
     g.fillRect(bannerArea);
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::resized()
+void PlaylistTrackManagerComponent::resized()
 {
     auto totalArea       = getLocalBounds();
     auto widthPadding    = totalArea.proportionOfWidth(0.01f);
@@ -126,7 +127,7 @@ void PlaylistSongViewComponent::resized()
     tableComponent.setBounds(totalArea);
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
+void PlaylistTrackManagerComponent::paintRowBackground(juce::Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
 {
     if(rowIsSelected)
         g.fillAll(juce::Colour(0xFF5c5c5c));
@@ -134,7 +135,7 @@ void PlaylistSongViewComponent::paintRowBackground(juce::Graphics& g, int /*rowN
         g.fillAll(juce::Colours::transparentBlack);
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+void PlaylistTrackManagerComponent::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
     if (auto* rowElement = dataList->getChildElement(rowNumber))
     {
@@ -152,12 +153,12 @@ void PlaylistSongViewComponent::paintCell(juce::Graphics& g, int rowNumber, int 
     }
 }
 //-----------------------------------------------------------------------------
-juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumber
+juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int rowNumber
                                                                    , int columnId
                                                                    , bool /*isRowSelected*/
                                                                    , juce::Component* existingComponentToUpdate)
 {
-    if (columnId == 4)
+    if (columnId == 5)
     {
         auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
         
@@ -174,7 +175,7 @@ juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumb
         return playButton;
     }
     
-    if (columnId == 5)
+    if (columnId == 6)
     {
         auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
@@ -194,7 +195,7 @@ juce::Component* PlaylistSongViewComponent::refreshComponentForCell( int rowNumb
     return nullptr;
 }
 //-----------------------------------------------------------------------------
-int PlaylistSongViewComponent::getColumnAutoSizeWidth (int columnId)
+int PlaylistTrackManagerComponent::getColumnAutoSizeWidth (int columnId)
 {
     if (columnId == 9)
         return 50;
@@ -214,12 +215,12 @@ int PlaylistSongViewComponent::getColumnAutoSizeWidth (int columnId)
     return widest + 8;
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::cellDoubleClicked (int rowNumber, int /*columnId*/, const juce::MouseEvent&)
+void PlaylistTrackManagerComponent::cellDoubleClicked (int rowNumber, int /*columnId*/, const juce::MouseEvent&)
 {
     RowPlayButtonClicked(rowNumber);
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::buttonClicked(juce::Button* button)
+void PlaylistTrackManagerComponent::buttonClicked(juce::Button* button)
 {
     auto buttonName = button->getComponentID();
     if(buttonName == "add")
@@ -229,7 +230,7 @@ void PlaylistSongViewComponent::buttonClicked(juce::Button* button)
             insertTracks(id);
     }
 }
-void PlaylistSongViewComponent::SettingsButtonClicked()
+void PlaylistTrackManagerComponent::SettingsButtonClicked()
 {
     juce::PopupMenu m;
     m.addItem (1, "Clear Playlist");
@@ -250,12 +251,12 @@ void PlaylistSongViewComponent::SettingsButtonClicked()
                     });
 }
 //==============================================================================
-int PlaylistSongViewComponent::getNumRows()
+int PlaylistTrackManagerComponent::getNumRows()
 {
     return numRows;
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
+void PlaylistTrackManagerComponent::sortOrderChanged (int newSortColumnId, bool isForwards)
 {
     if (newSortColumnId != 0)
     {
@@ -270,31 +271,31 @@ void PlaylistSongViewComponent::sortOrderChanged (int newSortColumnId, bool isFo
     }
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::UpdateTrackID()
+void PlaylistTrackManagerComponent::UpdateTrackID()
 {
     for(int i = 0; i < numRows; ++i)
         dataList->getChildElement(i)->setAttribute ("No.", i + 1);
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::UpdateDurationLabel()
+void PlaylistTrackManagerComponent::UpdateDurationLabel()
 {
     playlistDurationLabel.setText( "Duration : " + secondsToMins(playlistTotalDurationSecs, true)
                                  , juce::dontSendNotification);
 }
 //==============================================================================
-juce::XmlElement* PlaylistSongViewComponent::GetTrack(int index)
+juce::XmlElement* PlaylistTrackManagerComponent::GetTrack(int index)
 {
     auto track = dataList->getChildElement(index);
     currentTrackUUID = track->getStringAttribute("UUID");
     return track;
 }
 //-----------------------------------------------------------------------------
-juce::XmlElement* PlaylistSongViewComponent::GetFirstSongInPlaylist()
+juce::XmlElement* PlaylistTrackManagerComponent::GetFirstSongInPlaylist()
 {
     return dataList->getFirstChildElement();
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::RemoveTrackFromPlaylist(int row)
+void PlaylistTrackManagerComponent::RemoveTrackFromPlaylist(int row)
 {
     if (row >= 0)
     {
@@ -314,12 +315,12 @@ void PlaylistSongViewComponent::RemoveTrackFromPlaylist(int row)
     }
 }
 //==============================================================================
-void PlaylistSongViewComponent::RowPlayButtonClicked(const int& row)
+void PlaylistTrackManagerComponent::RowPlayButtonClicked(const int& row)
 {
     listeners.call([=](auto &l) { l.PlayButtonClicked(row); });
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
+void PlaylistTrackManagerComponent::SetPlaylistLimit(double limit)
 {
     if (playlistData)
     {
@@ -334,13 +335,13 @@ void PlaylistSongViewComponent::SetPlaylistLimit(double limit)
     }
 }
 //-----------------------------------------------------------------------------
-double PlaylistSongViewComponent::GetPlaylistLimit()
+double PlaylistTrackManagerComponent::GetPlaylistLimit()
 {
     return playlistData->getChildByName("PLAYLISTINFO")
                        ->getDoubleAttribute("PlaylistDurationLimit");
 }
 //-----------------------------------------------------------------------------
-juce::String PlaylistSongViewComponent::secondsToMins(double seconds, bool asText)
+juce::String PlaylistTrackManagerComponent::secondsToMins(double seconds, bool asText)
 {
     juce::String songLengthString = "";
     juce::String lhs;
@@ -372,7 +373,7 @@ juce::String PlaylistSongViewComponent::secondsToMins(double seconds, bool asTex
     return songLengthString;
 }
 //==============================================================================
-void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
+void PlaylistTrackManagerComponent::LoadPlaylist(const juce::File &xmlFile)
 {
     if (xmlFile == juce::File() || ! xmlFile.exists())
         return;
@@ -393,7 +394,7 @@ void PlaylistSongViewComponent::LoadPlaylist(const juce::File &xmlFile)
     repaint();
 }
 //-----------------------------------------------------------------------------
-void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
+void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
 {
     if (dataList)
     {
@@ -442,7 +443,19 @@ void PlaylistSongViewComponent::insertTracks(juce::File& audioFile)
         tableComponent.repaint();
     }
 }
-
+//-----------------------------------------------------------------------------
+void PlaylistTrackManagerComponent::ExtractBPM()
+{
+    if(playlistData)
+    {
+        std::unique_ptr<MIRProcessThread> MIR;
+        MIR = std::make_unique<MIRProcessThread>(dataList);
+        MIR->runThread();
+        playlistData->writeTo(playlistXmlFile);
+        tableComponent.updateContent();
+        tableComponent.repaint();
+    }
+}
 //==============================================================================
 //Mark - TableImageButtonCustomComponent
 TableImageButtonCustomComponent::TableImageButtonCustomComponent()
@@ -492,12 +505,12 @@ void TableImageButtonCustomComponent::setRowAndColumn (int newRow, int newColumn
 //==============================================================================
 //Mark - PlaylistDataSorter
 
-PlaylistSongViewComponent::PlaylistDataSorter::PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards)
+PlaylistTrackManagerComponent::PlaylistDataSorter::PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards)
     : attributeToSort(attributeToSortBy)
     , direction(forwards ? 1 : -1)
 {}
 
-int PlaylistSongViewComponent::PlaylistDataSorter::compareElements(juce::XmlElement* first, juce::XmlElement* second) const
+int PlaylistTrackManagerComponent::PlaylistDataSorter::compareElements(juce::XmlElement* first, juce::XmlElement* second) const
 {
     auto result = first->getStringAttribute (attributeToSort)
                         .compareNatural (second->getStringAttribute (attributeToSort));

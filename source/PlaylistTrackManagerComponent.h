@@ -4,8 +4,9 @@
 #include <vector>
 
 #include "SidePanelWithBrowser.h"
+#include "MIR.h"
 
-class PlaylistSongViewComponent
+class PlaylistTrackManagerComponent
     : public juce::Component
     , public juce::TableListBoxModel
     , public juce::Button::Listener
@@ -13,7 +14,7 @@ class PlaylistSongViewComponent
 {
 public:
     //==============================================================================
-    PlaylistSongViewComponent(juce::AudioFormatManager& _formatManager);
+    PlaylistTrackManagerComponent(juce::AudioFormatManager& _formatManager);
     //==============================================================================
     class Listener;
     //==============================================================================
@@ -83,6 +84,8 @@ public:
     void RemoveListener(Listener &l) { listeners.remove(&l); }
     
     void LoadPlaylist(const juce::File& xmlFile);
+    
+    void ExtractBPM();
     //==============================================================================
 private:
     class PlaylistDataSorter;
@@ -119,7 +122,7 @@ private:
 
     juce::ListenerList<Listener> listeners;
                               
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistSongViewComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistTrackManagerComponent)
 };
 
 //==============================================================================
@@ -155,7 +158,7 @@ private:
 };
 
 //==============================================================================
-class PlaylistSongViewComponent::PlaylistDataSorter
+class PlaylistTrackManagerComponent::PlaylistDataSorter
 {
 public:
     PlaylistDataSorter(const juce::String& attributeToSortBy, bool forwards);
@@ -168,7 +171,7 @@ private:
 };
 
 //==============================================================================
-class PlaylistSongViewComponent::Listener
+class PlaylistTrackManagerComponent::Listener
 {
 public:
     virtual ~Listener() = default;

@@ -1,5 +1,33 @@
 # CMakeLists.txt for Automated Playlist Generation Player
 
+# ==================================================================================================
+# Helpers
+function(apply_additional_compile_options _target)
+    message("-- Adding additional compile options")
+
+    FIND_PACKAGE(ZLIB)
+    FIND_PACKAGE(Iconv)
+
+    message("    -- Libiconv found: ${Iconv_FOUND}")
+    message("    -- zlib found:     ${ZLIB_FOUND}")
+    message("")
+
+    target_link_libraries(${_target} PRIVATE Iconv::Iconv
+                                             ZLIB::ZLIB)
+
+    # Ensure Xcode doesn't randomly attempt to codesign
+    if (APPLE)
+        set_target_properties( APG PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
+    endif()
+
+    if(UNIX AND NOT APPLE)
+        FIND_PACKAGE(Threads)
+        target_link_libraries(${_target} PRIVATE Threads::Threads)
+        target_compile_definitions(${_target} PRIVATE JUCE_USE_MP3AUDIOFORMAT=1)
+    endif()
+endfunction()
+#---------------------------------------------------------------------------------------------------
+
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.5" CACHE STRING "Minimum OS X deployment version")
 
@@ -8,8 +36,17 @@ project(APG VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# TODO: Make toggleable 
+# set(CMAKE_BUILD_TYPE Debug)
+
+set(ESSENTIA_DIR             "${CMAKE_CURRENT_LIST_DIR}/external/essentia")
+set(ESSENENTIA_3RD_PARTY_DIR "${ESSENTIA_DIR}/packaging/debian_3rdparty")
+
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
+ if(NOT EXISTS ${JUCE_DIR})
+     message(FATAL_ERROR "Missing JUCE path. Set using JUCE_DIR variable")
+ endif()
 add_subdirectory("${JUCE_DIR}")
 
 # juce_set_vst2_sdk_path(...)
@@ -46,17 +83,20 @@ target_sources(APG
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
         source/AudioThumbnailComp.h
+        source/BpmDetector.h
         source/Fonts.h
         source/FontsPoppins.cpp
         source/FontsPoppins.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
+        source/MIR.cpp
+        source/MIR.h
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
         source/PlaylistSettingsComponent.h
-        source/PlaylistSongViewComponent.cpp
-        source/PlaylistSongViewComponent.h
+        source/PlaylistTrackManagerComponent.cpp
+        source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
         source/TransportSlider.h
         source/WaveformView.cpp
@@ -103,12 +143,38 @@ juce_add_binary_data(BinaryData
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+target_include_directories( APG
+                            PRIVATE
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/eigen3"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/lame/"
+                            "${ESSENENTIA_3RD_PARTY_DIR}/include/taglib/"
+                            "${ESSENTIA_DIR}/src/essentia/")
+
+target_link_directories( APG
+                         PRIVATE
+                         "${ESSENENTIA_3RD_PARTY_DIR}/lib"
+                         "${ESSENTIA_DIR}/build/src/")
+
 target_link_libraries(APG
     PRIVATE
         BinaryData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
         juce::juce_audio_utils
+        essentia
+        yaml
+        avformat
+        avcodec
+        swresample
+        samplerate
+        avutil
+        chromaprint
+        fftw3f
+        mp3lame
+        tag
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+apply_additional_compile_options(APG)

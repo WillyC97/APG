@@ -9,7 +9,7 @@
 #include "AudioThumbnailComp.h"
 #include "PlaylistCreationComponent.h"
 #include "PlaylistSettingsComponent.h"
-#include "PlaylistSongViewComponent.h"
+#include "PlaylistTrackManagerComponent.h"
 #include "TransportSlider.h"
 #include "WaveformView.h"
 
@@ -24,7 +24,7 @@ class MainComponent
     , public juce::ChangeListener
     , public juce::KeyListener
     , private AudioPlayer::Listener
-    , private PlaylistSongViewComponent::Listener
+    , private PlaylistTrackManagerComponent::Listener
 {
 public:
     //==============================================================================
@@ -63,7 +63,7 @@ private:
     juce::AudioTransportSource    transportSource;
 
     PlaylistCreationComponent     playlistCreationComponent;
-    PlaylistSongViewComponent     playlistComponent;
+    PlaylistTrackManagerComponent trackManager;
     juce::File                    lastTrackPlayedDir;
                 
     juce::ImageButton             playButton;
