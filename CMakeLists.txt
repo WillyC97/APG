@@ -17,11 +17,13 @@ function(apply_additional_compile_options _target)
 
     # Ensure Xcode doesn't randomly attempt to codesign
     if (APPLE)
-         set_target_properties( APG PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
+        set_target_properties( APG PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
     endif()
 
     if(UNIX AND NOT APPLE)
-        target_compile_definitions(APG PRIVATE JUCE_USE_MP3AUDIOFORMAT=1)
+        FIND_PACKAGE(Threads)
+        target_link_libraries(${_target} PRIVATE Threads::Threads)
+        target_compile_definitions(${_target} PRIVATE JUCE_USE_MP3AUDIOFORMAT=1)
     endif()
 endfunction()
 #---------------------------------------------------------------------------------------------------
@@ -34,14 +36,17 @@ project(APG VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# TODO: Make toggleable 
+# set(CMAKE_BUILD_TYPE Debug)
+
 set(ESSENTIA_DIR             "${CMAKE_CURRENT_LIST_DIR}/external/essentia")
 set(ESSENENTIA_3RD_PARTY_DIR "${ESSENTIA_DIR}/packaging/debian_3rdparty")
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
-if(NOT EXISTS ${JUCE_DIR})
-    message(FATAL_ERROR "Missing JUCE path. Set using JUCE_DIR variable")
-endif()
+ if(NOT EXISTS ${JUCE_DIR})
+     message(FATAL_ERROR "Missing JUCE path. Set using JUCE_DIR variable")
+ endif()
 add_subdirectory("${JUCE_DIR}")
 
 # juce_set_vst2_sdk_path(...)
