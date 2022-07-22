@@ -15,6 +15,10 @@ NonModalAlertWindow::NonModalAlertWindow()
     setAlwaysOnTop(true);
     windowTitle.setFont(Fonts::GetFont(Fonts::Type::Regular, 24.f));
     windowTitle.setJustificationType(juce::Justification::centred);
+    
+    okButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFb8b8b8));
+    okButton.onClick=[=](){ setVisible(false); };
+    addChildComponent(okButton);
     addAndMakeVisible(windowTitle);
 }
 //------------------------------------------------------------------------------
@@ -47,15 +51,15 @@ void NonModalAlertWindow::paint(juce::Graphics &g)
 {
     g.fillAll(juce::Colours::black.withAlpha(0.5f));
     g.setColour(juce::Colours::ghostwhite);
-    auto bounds = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
+    auto bounds     = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
     auto cornerSize = 4.0f;
     g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
         
     auto innerBounds = bounds.reduced(1);
-    g.reduceClipRegion (innerBounds);
+    g.reduceClipRegion(innerBounds);
 
     g.setColour(juce::Colour(0xFF111212));
-    g.fillRoundedRectangle (innerBounds.toFloat(), cornerSize);
+    g.fillRoundedRectangle(innerBounds.toFloat(), cornerSize);
 }
 //------------------------------------------------------------------------------
 void NonModalAlertWindow::resized()
@@ -64,6 +68,7 @@ void NonModalAlertWindow::resized()
     auto bounds      = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
     auto innerBounds = bounds.reduced(padding);
     windowTitle.setBounds(innerBounds.removeFromTop(int(windowTitle.getFont().getHeight())));
+    okButton   .setBounds(innerBounds.removeFromBottom(50).reduced(padding));
 }
 
 //==================================================================================
@@ -116,4 +121,53 @@ void NonModalAlertWindowOkCancel::resized()
     bounds.removeFromBottom(10);
     auto texteditorBounds = bounds.removeFromBottom(60);
     textEditor.setBounds(texteditorBounds.reduced(10));
+}
+
+//==================================================================================
+//MARK: NonModalAlertWindowWithProgressBar
+
+NonModalAlertWindowWithProgressBar::NonModalAlertWindowWithProgressBar(const juce::String& title, double& progressValue)
+{
+    SetWindowTitle(title);
+    
+    progressMessage.setFont(Fonts::GetFont(Fonts::Type::Regular, 20.f));
+    progressMessage.setJustificationType(juce::Justification::centred);
+    
+    cancelButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFb8b8b8));
+    
+    progressBar = std::make_unique<juce::ProgressBar>(progressValue);
+    
+    addAndMakeVisible(progressMessage);
+    addAndMakeVisible(cancelButton);
+    addAndMakeVisible(progressBar.get());
+}
+//------------------------------------------------------------------------------
+
+void NonModalAlertWindowWithProgressBar::AddButtonListener(juce::Button::Listener* listener)
+{
+    cancelButton.addListener(listener);
+}
+//------------------------------------------------------------------------------
+
+void NonModalAlertWindowWithProgressBar::SetMessageText(const juce::String& message)
+{
+    progressMessage.setText(message, juce::dontSendNotification);
+}
+//------------------------------------------------------------------------------
+
+void NonModalAlertWindowWithProgressBar::resized()
+{
+    NonModalAlertWindow::resized();
+    
+    auto bounds             = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
+    auto buttonBounds       = bounds.removeFromBottom(50);
+    
+    cancelButton.setBounds(buttonBounds.reduced(padding));
+    
+    bounds.removeFromBottom(10);
+    auto progressBarBounds = bounds.removeFromBottom(60);
+    progressBar->setBounds(progressBarBounds.reduced(10));
+    
+    auto progressLabelBounds = bounds.removeFromBottom(50);
+    progressMessage.setBounds(progressLabelBounds.reduced(10));
 }

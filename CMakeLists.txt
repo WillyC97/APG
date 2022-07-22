@@ -101,6 +101,8 @@ target_sources(APG
         source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
         source/TransportSlider.h
+        source/ThreadWithNonModalAlertWindow.cpp
+        source/ThreadWithNonModalAlertWindow.h
         source/WaveformView.cpp
         source/WaveformView.h
       )
