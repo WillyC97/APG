@@ -57,6 +57,7 @@ create_project_using_cmake()
   # Creates the project -S: CMakeLists location  -B: directory to place build files
     cmake -G "$GENERATOR" -S $APG_ROOT -B $BUILD_OUTPUT_DIR \
     -DJUCE_DIR=$JUCE_DIR -DBUILD_OUTPUT_DIR=$BUILD_OUTPUT_DIR \
+    -DBUILD_TOUCH_UI=$TOUCH_UI \
     $ADDITIONAL_BUILD_FLAGS
 }
 #------------------------------------------------------------------------------
@@ -76,6 +77,7 @@ build_project()
 : ${BUILD_OUTPUT_DIR:="$APG_ROOT/projects"}
 : ${CONFIGURATION:=Debug}
 : ${REGENERATE_PROJECT:=no}
+: ${BUILD_TOUCH_UI:=no}
 
  XCODE_TRANSIENT_FILES="$BUILD_OUTPUT_DIR/XcodeTransientFilesSafeToDelete"
 
@@ -111,6 +113,9 @@ build_project()
              else
                  BUILD_OUTPUT_DIR="$PARAM"
              fi
+             ;;
+         --touch-ui)
+             TOUCH_UI=yes
              ;;
          --help)
              show_help
