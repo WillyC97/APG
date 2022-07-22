@@ -3,10 +3,13 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <tuple>
 
+#include "NonModalAlertWindow.h"
+
 class PlaylistCreationComponent
     : public juce::Component
     , public juce::ListBoxModel
     , public juce::ChangeBroadcaster
+    , public juce::Button::Listener
 {
 public:
     PlaylistCreationComponent();
@@ -18,6 +21,7 @@ public:
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged(int lastRowSelected) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
+    void buttonClicked(juce::Button* button) override;
     
     juce::File& GetPlaylist();
     
@@ -28,7 +32,7 @@ private:
     void UpdateNumPlaylists();
     void UpdateContent();
     
-    void LaunchDialogBox(bool createPlaylist);
+    void LaunchDialogBox();
     
     void mouseEnter(const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
     void mouseExit (const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
@@ -37,8 +41,11 @@ private:
     int numPlaylists;
     int currentHoverRow;
     
+    bool createPlaylistSwitch = true;
+    
     juce::File       lastPlaylistClicked;
     juce::TextButton addPlaylistButton;
     juce::ListBox    listBox;
     juce::Array<std::tuple<juce::String, juce::File>> playlistNames;
+    std::unique_ptr<NonModalAlertWindowOkCancel> nmaw;
 };

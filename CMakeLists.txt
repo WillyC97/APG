@@ -36,7 +36,7 @@ project(APG VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# TODO: Make toggleable 
+# TODO: Make toggleable
 # set(CMAKE_BUILD_TYPE Debug)
 
 set(ESSENTIA_DIR             "${CMAKE_CURRENT_LIST_DIR}/external/essentia")
@@ -92,6 +92,8 @@ target_sources(APG
         source/MainComponent.h
         source/MIR.cpp
         source/MIR.h
+        source/NonModalAlertWindow.cpp
+        source/NonModalAlertWindow.h
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
         source/PlaylistSettingsComponent.h
