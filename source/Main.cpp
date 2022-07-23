@@ -60,7 +60,6 @@ public:
                                                           .findColour (ResizableWindow::backgroundColourId),
                               DocumentWindow::allButtons)
         {
-            setUsingNativeTitleBar (true);
             setContentOwned (new MainComponent(), true);
             auto r = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
             auto width = r.getWidth();
@@ -70,11 +69,19 @@ public:
            #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
            #else
-            setResizable (true, true);
             centreWithSize (getWidth(), getHeight());
+            setResizable (true, true);
            #endif
 
             setVisible (true);
+            
+           #ifdef APG_TOUCH_UI
+            setUsingNativeTitleBar (false);
+            setTitleBarHeight (0);
+            setFullScreen (true);
+           #else
+            setUsingNativeTitleBar (true);
+           #endif
         }
 
         void closeButtonPressed() override

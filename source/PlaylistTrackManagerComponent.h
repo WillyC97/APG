@@ -121,6 +121,8 @@ private:
     juce::String currentTrackUUID;
 
     juce::ListenerList<Listener> listeners;
+    
+    std::unique_ptr<MIRProcessThread> MIR;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistTrackManagerComponent)
 };

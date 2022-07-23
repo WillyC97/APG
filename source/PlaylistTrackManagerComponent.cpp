@@ -448,8 +448,7 @@ void PlaylistTrackManagerComponent::ExtractBPM()
 {
     if(playlistData)
     {
-        std::unique_ptr<MIRProcessThread> MIR;
-        MIR = std::make_unique<MIRProcessThread>(dataList);
+        MIR = std::make_unique<MIRProcessThread>(dataList, getParentComponent());
         MIR->runThread();
         playlistData->writeTo(playlistXmlFile);
         tableComponent.updateContent();

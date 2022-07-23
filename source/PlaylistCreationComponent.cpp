@@ -28,7 +28,7 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     
     addPlaylistButton.setButtonText("Create Playlist");
     addPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
-    addPlaylistButton.onClick=[this](){ LaunchDialogBox(true); };
+    addPlaylistButton.onClick=[this](){ LaunchDialogBox(); createPlaylistSwitch = true; };
     addAndMakeVisible(addPlaylistButton);
     
     listBox.setRowHeight(40);
@@ -124,11 +124,28 @@ void PlaylistCreationComponent::listBoxItemClicked(int row, const juce::MouseEve
                             }
                             else if (result == 2)
                             {
-                                LaunchDialogBox(false);
+                                createPlaylistSwitch = false;
+                                LaunchDialogBox();
                                 selectedRowsChanged(row);
                             }
                         });
     }
+}
+
+void PlaylistCreationComponent::buttonClicked(juce::Button *button)
+{
+    if (button->getName() == "Ok")
+    {
+        const juce::String playlistName(nmaw->GetText());
+        if(playlistName.isEmpty())
+            return;
+        
+        if (createPlaylistSwitch)
+            CreatePlaylist(playlistName);
+        else
+            UpdatePlaylistName(playlistName);
+    }
+    nmaw.reset();
 }
 //==============================================================================
 juce::File& PlaylistCreationComponent::GetPlaylist()
@@ -159,6 +176,7 @@ void PlaylistCreationComponent::UpdatePlaylistName(const juce::String &playlistN
     playlist->getChildByName("PLAYLISTINFO")->setAttribute("PlaylistName", playlistName);
     playlist->writeTo(lastPlaylistClicked);
     UpdateContent();
+    sendChangeMessage();
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::UpdateNumPlaylists()
@@ -173,33 +191,16 @@ void PlaylistCreationComponent::UpdateContent()
     listBox.updateContent();
 }
 //------------------------------------------------------------------------------
-void PlaylistCreationComponent::LaunchDialogBox(bool createPlaylist)
+void PlaylistCreationComponent::LaunchDialogBox()
 {
-    juce::AlertWindow aw("Create Playlist", "Create Playlist", juce::AlertWindow::QuestionIcon, this);
-    
+    auto titleText = createPlaylistSwitch ? "Create Playlist" : "Update Playlist Name";
     auto initialText = "My Playlist " + juce::String(numPlaylists);
-    aw.addTextEditor("name", initialText, "Preset name");
-    aw.addButton("OK",     1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw.addButton("Cancel", 2, juce::KeyPress(juce::KeyPress::escapeKey));
 
-    if (aw.runModalLoop() == 1)
-    {
-        const juce::String playlistName(aw.getTextEditor("name")->getText());
-        
-        if (playlistName.isEmpty())
-        {
-            juce::AlertWindow::showMessageBox( juce::AlertWindow::WarningIcon
-                                             , "Invalid name"
-                                             , "No Playlist name specified"
-                                             , "OK");
-            return;
-        }
-        
-        if (createPlaylist)
-            CreatePlaylist(playlistName);
-        else
-            UpdatePlaylistName(playlistName);
-    }
+    auto parent = getParentComponent();
+    nmaw = std::make_unique<NonModalAlertWindowOkCancel>(titleText, initialText);
+    nmaw->AddButtonListener(this);
+    parent->addAndMakeVisible(nmaw.get());
+    nmaw->resized();
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::SetPlaylistNames()

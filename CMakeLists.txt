@@ -36,7 +36,7 @@ project(APG VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# TODO: Make toggleable 
+# TODO: Make toggleable
 # set(CMAKE_BUILD_TYPE Debug)
 
 set(ESSENTIA_DIR             "${CMAKE_CURRENT_LIST_DIR}/external/essentia")
@@ -92,6 +92,8 @@ target_sources(APG
         source/MainComponent.h
         source/MIR.cpp
         source/MIR.h
+        source/NonModalAlertWindow.cpp
+        source/NonModalAlertWindow.h
         source/PlaylistCreationComponent.cpp
         source/PlaylistCreationComponent.h
         source/PlaylistSettingsComponent.h
@@ -99,6 +101,8 @@ target_sources(APG
         source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
         source/TransportSlider.h
+        source/ThreadWithNonModalAlertWindow.cpp
+        source/ThreadWithNonModalAlertWindow.h
         source/WaveformView.cpp
         source/WaveformView.h
       )
@@ -120,6 +124,9 @@ target_compile_definitions(APG
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:APG,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:APG,JUCE_VERSION>")
 
+if ("${BUILD_TOUCH_UI}" STREQUAL "yes" )
+  target_compile_definitions(APG PRIVATE APG_TOUCH_UI)
+endif()
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
 # a new static library target that will include all the binary resources. There is an optional
 # `NAMESPACE` argument that can specify the namespace of the generated binary data class. Finally,
