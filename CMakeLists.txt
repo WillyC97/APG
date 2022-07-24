@@ -79,6 +79,8 @@ juce_add_gui_app(APG
 
 target_sources(APG
     PRIVATE
+        source/AudioMetadataManager.cpp
+        source/AudioMetadataManager.h
         source/AudioPlayer.cpp
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
@@ -100,6 +102,8 @@ target_sources(APG
         source/PlaylistTrackManagerComponent.cpp
         source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
+        source/TagLibFileHandler.cpp
+        source/TagLibFileHandler.h
         source/TransportSlider.h
         source/ThreadWithNonModalAlertWindow.cpp
         source/ThreadWithNonModalAlertWindow.h

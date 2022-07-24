@@ -78,6 +78,7 @@ private:
     TransportState state;
     std::unique_ptr<PlaylistSettingsComponent> playlistSettingsComponent;
     juce::SidePanel                            playlistSettingsSidePanel;
+    std::unique_ptr<juce::ImageComponent>      artworkDisplayer;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

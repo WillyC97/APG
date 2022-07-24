@@ -4,6 +4,8 @@
 #include "BinaryData.h"
 #include "Fonts.h"
 
+#include "TagLibFileHandler.h"
+
 using namespace APG::internal;
 
 PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatManager& _formatManager)
@@ -17,10 +19,12 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
-    tableComponent.getHeader().addColumn("Duration", 3, 200);
-    tableComponent.getHeader().addColumn("BPM",      4, 12);
-    tableComponent.getHeader().addColumn("Play",     5, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove",   6, 65, 65, 65);
+    tableComponent.getHeader().addColumn("Artist",   3, 300);
+    tableComponent.getHeader().addColumn("Album",    4, 300);
+    tableComponent.getHeader().addColumn("Duration", 5, 200);
+    tableComponent.getHeader().addColumn("BPM",      6, 12);
+    tableComponent.getHeader().addColumn("Play",     7, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Remove",   8, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
@@ -47,6 +51,7 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     searchBar.setColour(juce::TextEditor::outlineColourId, juce::Colours::transparentWhite);
     searchBar.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::transparentWhite);
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::ghostwhite);
+    searchBar.setKeyboardType(juce::TextInputTarget::VirtualKeyboardType::textKeyboard);
     searchBar.onTextChange = [this]
     {
         int rowCount = 0;
@@ -158,7 +163,7 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
                                                                    , bool /*isRowSelected*/
                                                                    , juce::Component* existingComponentToUpdate)
 {
-    if (columnId == 5)
+    if (columnId == 7)
     {
         auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
         
@@ -175,7 +180,7 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
         return playButton;
     }
     
-    if (columnId == 6)
+    if (columnId == 8)
     {
         auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
@@ -415,28 +420,36 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
                 return;
             }
 
-            auto title               = audioFile.getFileNameWithoutExtension().toStdString();
-            auto artist              = audioFile.getFileNameWithoutExtension().toStdString();
             auto trackDurationString = secondsToMins(trackDurationSecs, false);
             
             totalTracksInPlaylist = getNumRows() + 1;
             UpdateDurationLabel();
             
+            auto taggedFile = TagLibFileHandler::GetAudioFileProperties(audioFile);
+            auto songUUID   = juce::Uuid();
+            
             std::unique_ptr<juce::XmlElement> track;
             track = std::make_unique<juce::XmlElement>("TRACK");
-            track->setAttribute("No.", totalTracksInPlaylist);
-            track->setAttribute("Title", title);
-            track->setAttribute("Duration", trackDurationString);
-            track->setAttribute("FileLocation", audioFile.getFullPathName());
+            
+            track->setAttribute("No.",    totalTracksInPlaylist);
+            track->setAttribute("Title",  taggedFile.title);
+            track->setAttribute("Artist", taggedFile.artist);
+            track->setAttribute("Album",  taggedFile.album);
+            track->setAttribute("Year",   taggedFile.year);
+            track->setAttribute("Genre",  taggedFile.genre);
+            track->setAttribute("FileLocation", taggedFile.filePath);
+            
+            track->setAttribute("Duration",       trackDurationString);
             track->setAttribute("DurationInSecs", trackDurationSecs);
-            track->setAttribute("UUID", juce::Uuid().toString());
+            track->setAttribute("UUID",           songUUID.toString());
+            
             dataList    ->addChildElement(track.release());
             playlistData->getChildByName("PLAYLISTINFO")
                         ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
             playlistData->writeTo(playlistXmlFile);
             track.reset();
             
-            trackTitles.push_back(title);
+            trackTitles.push_back(taggedFile.title);
             numRows += 1;
         }
         tableComponent.updateContent();
