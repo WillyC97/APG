@@ -1,5 +1,6 @@
 #include "MainComponent.h"
 #include "BinaryData.h"
+#include "TagLibFileHandler.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -11,6 +12,7 @@ MainComponent::MainComponent()
                                                  , audioPlayer))
     , playlistSettingsComponent(std::make_unique<PlaylistSettingsComponent>(trackManager))
     , playlistSettingsSidePanel("Playlist Settings", 400, true)
+    , artworkDisplayer(std::make_unique<juce::ImageComponent>())
 {
     addKeyListener(this);
     audioPlayer.AddListener(*this);
@@ -66,6 +68,7 @@ MainComponent::MainComponent()
     };
 
     addAndMakeVisible(transportSlider);
+    addAndMakeVisible(artworkDisplayer.get());
         
     setSize (1000, 600);
     
@@ -158,6 +161,8 @@ void MainComponent::resized()
     waveformViewButton.setBounds(transportButtonsBounds
                                 .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
     
+    artworkDisplayer->setBounds(transportButtonsBounds.withLeft(buttonSize).withRight(4*buttonSize));
+    
     playlistSettingsButton.setBounds(playlistSettingsBounds);
     trackManager.setBounds(playlistBounds);
     playlistCreationComponent.setBounds(playlistCreationBounds);
@@ -240,7 +245,8 @@ void MainComponent::LoadAndPlayTrack(const juce::XmlElement& track)
     juce::File filePath = track.getStringAttribute("FileLocation");
     auto trackNo  = track.getStringAttribute("No.").getIntValue();
     DBG(filePath.getFullPathName());
-        
+    
+    artworkDisplayer->setImage(TagLibFileHandler::ExtractImageFromFile(filePath));
     audioPlayer.load(filePath);
     waveFormView->SetFile(filePath);
     transportSlider.SetRange();
