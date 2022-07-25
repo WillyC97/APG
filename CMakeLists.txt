@@ -79,6 +79,8 @@ juce_add_gui_app(APG
 
 target_sources(APG
     PRIVATE
+        source/AlbumArtworkDisplayer.cpp
+        source/AlbumArtworkDisplayer.h
         source/AudioMetadataManager.cpp
         source/AudioMetadataManager.h
         source/AudioPlayer.cpp
