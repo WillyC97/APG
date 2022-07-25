@@ -5,6 +5,7 @@
 // have called `juce_generate_juce_header(<thisTarget>)` in your CMakeLists.txt,
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
+#include "AlbumArtworkDisplayer.h"
 #include "AudioPlayer.h"
 #include "AudioThumbnailComp.h"
 #include "PlaylistCreationComponent.h"
@@ -55,7 +56,7 @@ private:
     void PlayButtonClicked(const int& row) override;
     
     void SkipBackward();
-    void LoadAndPlayTrack(const juce::XmlElement& track);
+    void LoadAndPlayTrack(const juce::XmlElement* track);
     
     AudioPlayer                   audioPlayer;
     std::unique_ptr<WaveformView> waveFormView;
@@ -78,7 +79,7 @@ private:
     TransportState state;
     std::unique_ptr<PlaylistSettingsComponent> playlistSettingsComponent;
     juce::SidePanel                            playlistSettingsSidePanel;
-    std::unique_ptr<juce::ImageComponent>      artworkDisplayer;
+    std::unique_ptr<AlbumArtworkDisplayer>     artworkDisplayer;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

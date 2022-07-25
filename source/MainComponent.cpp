@@ -1,6 +1,5 @@
 #include "MainComponent.h"
 #include "BinaryData.h"
-#include "TagLibFileHandler.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -12,7 +11,7 @@ MainComponent::MainComponent()
                                                  , audioPlayer))
     , playlistSettingsComponent(std::make_unique<PlaylistSettingsComponent>(trackManager))
     , playlistSettingsSidePanel("Playlist Settings", 400, true)
-    , artworkDisplayer(std::make_unique<juce::ImageComponent>())
+    , artworkDisplayer(std::make_unique<AlbumArtworkDisplayer>())
 {
     addKeyListener(this);
     audioPlayer.AddListener(*this);
@@ -129,46 +128,54 @@ void MainComponent::resized()
     const auto transportMargin              = 13;
     const auto transportBarBoundsSize       = 42;
     const auto transportButtonBoundsSize    = 35;
+    const auto transportTotalBoundsSize     = transportMargin
+                                            + transportBarBoundsSize
+                                            + transportButtonBoundsSize;
     const auto availablePlaylistsBoundsSize = 240;
-
     
-    auto totalBounds            = getLocalBounds();
+    auto       totalBounds = getLocalBounds();
+    const auto split       = totalBounds.proportionOfWidth(0.25);
     
-    auto transportBarBounds     = totalBounds.removeFromBottom(transportBarBoundsSize);
-    auto transportButtonsBounds = totalBounds.removeFromBottom(transportButtonBoundsSize);
-                                  totalBounds.removeFromBottom(transportMargin);
+    auto transportTotalBounds   = totalBounds.removeFromBottom(transportTotalBoundsSize).reduced(8);
+    auto transportTotalDirty    = transportTotalBounds;
+    auto transportLeftThird     = transportTotalDirty.removeFromLeft(split);
+    auto transportRightThird    = transportTotalDirty.removeFromRight(split);
+    auto transportMiddle        = transportTotalDirty;
+    auto transportButtonsBounds = transportMiddle.removeFromTop(transportButtonBoundsSize);
+    
     auto waveformBounds         = totalBounds;
     auto playlistCreationBounds = totalBounds.removeFromLeft(availablePlaylistsBoundsSize);
     auto playlistSettingsBounds = playlistCreationBounds.removeFromTop(buttonSize);
     auto playlistBounds         = totalBounds;
     
     playButton.setBounds(transportButtonsBounds
-                        .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
-                        .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
-    
+                        .withRight(transportTotalBounds.getWidth() / 2 + buttonSize)
+                        .withLeft (transportTotalBounds.getWidth() / 2 - buttonSize));
+
     pauseButton.setBounds(transportButtonsBounds
-                         .withRight(transportButtonsBounds.getWidth() /2 + buttonSize)
-                         .withLeft(transportButtonsBounds.getWidth() / 2 - buttonSize));
-    
+                         .withRight(transportTotalBounds.getWidth() / 2 + buttonSize)
+                         .withLeft (transportTotalBounds.getWidth() / 2 - buttonSize));
+
     skipForwardButton.setBounds(transportButtonsBounds
-                               .withRight(transportButtonsBounds.getWidth() /2 + buttonGap + buttonSize)
-                               .withLeft(transportButtonsBounds.getWidth() / 2 + buttonGap));
-    
+                               .withRight(transportTotalBounds.getWidth() / 2 + buttonGap + buttonSize)
+                               .withLeft (transportTotalBounds.getWidth() / 2 + buttonGap));
+
     skipBackwardButton.setBounds(transportButtonsBounds
-                                .withRight(transportButtonsBounds.getWidth() /2 - buttonGap)
-                                .withLeft(transportButtonsBounds.getWidth() / 2 - buttonGap - buttonSize));
+                                .withRight(transportTotalBounds.getWidth() / 2 - buttonGap)
+                                .withLeft (transportTotalBounds.getWidth() / 2 - buttonGap - buttonSize));
     
-    waveformViewButton.setBounds(transportButtonsBounds
-                                .withLeft(transportButtonsBounds.getWidth() - (2 * buttonSize)));
+    waveformViewButton.setBounds(transportRightThird
+                                .withLeft(transportTotalBounds.getWidth() - (2 * buttonSize)));
     
     artworkDisplayer->setBounds(transportButtonsBounds.withLeft(buttonSize).withRight(4*buttonSize));
-    
-    playlistSettingsButton.setBounds(playlistSettingsBounds);
-    trackManager.setBounds(playlistBounds);
+
+    playlistSettingsButton   .setBounds(playlistSettingsBounds);
+    trackManager             .setBounds(playlistBounds);
     playlistCreationComponent.setBounds(playlistCreationBounds);
 
-    waveFormView->setBounds(waveformBounds);
-    transportSlider.setBounds(transportBarBounds);
+    artworkDisplayer->setBounds(transportLeftThird);
+    waveFormView    ->setBounds(waveformBounds);
+    transportSlider  .setBounds(transportMiddle);
 }
 
 void MainComponent::StreamFinished()
@@ -182,7 +189,7 @@ void MainComponent::StreamFinished()
             (currentNumRows >= lastSongPlayedTrackNo))
         {
             auto track = trackManager.GetTrack(lastSongPlayedTrackNo);
-            LoadAndPlayTrack(*track);
+            LoadAndPlayTrack(track);
         }
     }
 }
@@ -237,16 +244,16 @@ bool MainComponent::keyPressed(const juce::KeyPress& key, juce::Component* origi
 void MainComponent::PlayButtonClicked(const int &row)
 {
         auto selectedTrack = trackManager.GetTrack(row);
-        LoadAndPlayTrack(*selectedTrack);
+        LoadAndPlayTrack(selectedTrack);
 }
 
-void MainComponent::LoadAndPlayTrack(const juce::XmlElement& track)
+void MainComponent::LoadAndPlayTrack(const juce::XmlElement* track)
 {
-    juce::File filePath = track.getStringAttribute("FileLocation");
-    auto trackNo  = track.getStringAttribute("No.").getIntValue();
+    juce::File filePath = track->getStringAttribute("FileLocation");
+    auto trackNo  = track->getStringAttribute("No.").getIntValue();
     DBG(filePath.getFullPathName());
     
-    artworkDisplayer->setImage(TagLibFileHandler::ExtractImageFromFile(filePath));
+    artworkDisplayer->SetTrackToLoad(track);
     audioPlayer.load(filePath);
     waveFormView->SetFile(filePath);
     transportSlider.SetRange();
@@ -265,7 +272,7 @@ void MainComponent::SkipBackward()
         {
             auto lastSongPlayedTrackNo = trackManager.GetLastTrackNoPlayed();
             if (lastSongPlayedTrackNo != 1)
-                LoadAndPlayTrack(*trackManager.GetTrack(lastSongPlayedTrackNo - 2));
+                LoadAndPlayTrack(trackManager.GetTrack(lastSongPlayedTrackNo - 2));
         }
     }
 }
