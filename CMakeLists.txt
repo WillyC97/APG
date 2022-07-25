@@ -144,6 +144,7 @@ endif()
 juce_add_binary_data(BinaryData
       SOURCES
           resources/cross.png
+          resources/missing_artwork.png
           resources/play.png
           resources/pause.png
           resources/settings.png

@@ -1,5 +1,7 @@
 #include "TagLibFileHandler.h"
+
 #include "AudioMetadataManager.h"
+#include "BinaryData.h"
 
 #include <fileref.h>
 #include <tag.h>
@@ -44,6 +46,8 @@ juce::Image TagLibFileHandler::ExtractImageFromFile(const juce::File& file)
     std::unique_ptr<ID3v2TagContainer> tagContainer;
     tagContainer = AudioMetadataManager::CreateMetadataReader(file);
     
+    auto missingArtworkImage = juce::ImageCache::getFromMemory( BinaryData::missing_artwork_png
+                                                              , BinaryData::missing_artwork_pngSize);
     if (tagContainer)
     {
         auto metadata = tagContainer->tag;
@@ -54,13 +58,12 @@ juce::Image TagLibFileHandler::ExtractImageFromFile(const juce::File& file)
             TagLib::ID3v2::AttachedPictureFrame* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(metadata->frameList("APIC")[i]);
                 
             if(frame->type() == TagLib::ID3v2::AttachedPictureFrame::FrontCover)
-            {
-                auto coverImage = juce::ImageCache::getFromMemory(frame->picture().data(), frame->size());
-                return coverImage;
-            }
+                return juce::ImageCache::getFromMemory(frame->picture().data(), frame->size());
+            else
+                return missingArtworkImage;
         }
     }
-    return juce::Image();
+    return missingArtworkImage;
 }
 
 
