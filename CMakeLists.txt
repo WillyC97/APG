@@ -106,6 +106,8 @@ target_sources(APG
         source/SidePanelWithBrowser.h
         source/TagLibFileHandler.cpp
         source/TagLibFileHandler.h
+        source/TrackInfoComponent.cpp
+        source/TrackInfoComponent.h
         source/TransportSlider.h
         source/ThreadWithNonModalAlertWindow.cpp
         source/ThreadWithNonModalAlertWindow.h
