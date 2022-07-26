@@ -3,14 +3,9 @@
 
 using namespace APG::internal;
 //==============================================================================
-namespace
-{
-    constexpr auto windowWidth  = 350;
-    constexpr auto windowHeight = 200;
-    constexpr auto padding      = 6;
-}
-//==============================================================================
-NonModalAlertWindow::NonModalAlertWindow()
+NonModalAlertWindow::NonModalAlertWindow(const int _width, const int _height)
+: width(_width)
+, height(_height)
 {
     setAlwaysOnTop(true);
     windowTitle.setFont(Fonts::GetFont(Fonts::Type::Regular, 24.f));
@@ -51,7 +46,7 @@ void NonModalAlertWindow::paint(juce::Graphics &g)
 {
     g.fillAll(juce::Colours::black.withAlpha(0.5f));
     g.setColour(juce::Colours::ghostwhite);
-    auto bounds     = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
+    auto bounds     = GetWindowBounds();
     auto cornerSize = 4.0f;
     g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
         
@@ -65,12 +60,22 @@ void NonModalAlertWindow::paint(juce::Graphics &g)
 void NonModalAlertWindow::resized()
 {
     setBounds(juce::Rectangle<int>(getParentWidth(), getParentHeight()));
-    auto bounds      = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
-    auto innerBounds = bounds.reduced(padding);
+    windowBounds     = getLocalBounds().withSizeKeepingCentre(width, height);
+    auto innerBounds = windowBounds.reduced(padding);
+    
+    // Currently assumes the custom component wants to take up the entire window
+    if (customComp)
+        customComp->setBounds(innerBounds);
+    
     windowTitle.setBounds(innerBounds.removeFromTop(int(windowTitle.getFont().getHeight())));
     okButton   .setBounds(innerBounds.removeFromBottom(50).reduced(padding));
 }
-
+//------------------------------------------------------------------------------
+void NonModalAlertWindow::AddCustomComponent(juce::Component *comp)
+{
+    customComp = comp;
+    addAndMakeVisible(customComp);
+}
 //==================================================================================
 //MARK: NonMondalAlertWindowOkCancel
 
@@ -110,9 +115,9 @@ void NonModalAlertWindowOkCancel::resized()
 {
     NonModalAlertWindow::resized();
     
-    auto bounds             = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
+    auto bounds             = NonModalAlertWindow::GetWindowBounds();
     auto buttonBounds       = bounds.removeFromBottom(50);
-    auto cancelButtonBounds = buttonBounds.removeFromLeft(windowWidth/2);
+    auto cancelButtonBounds = buttonBounds.removeFromLeft(bounds.getWidth()/2);
     
     auto okayButtonBounds = buttonBounds;
     cancelButton.setBounds(cancelButtonBounds.reduced(padding));
@@ -159,7 +164,7 @@ void NonModalAlertWindowWithProgressBar::resized()
 {
     NonModalAlertWindow::resized();
     
-    auto bounds             = getLocalBounds().withSizeKeepingCentre(windowWidth, windowHeight);
+    auto bounds             = NonModalAlertWindow::GetWindowBounds();
     auto buttonBounds       = bounds.removeFromBottom(50);
     
     cancelButton.setBounds(buttonBounds.reduced(padding));
