@@ -31,6 +31,9 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     addPlaylistButton.onClick=[this](){ LaunchDialogBox(); createPlaylistSwitch = true; };
     addAndMakeVisible(addPlaylistButton);
     
+    #ifdef APG_TOUCH_UI
+        listBox.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
+    #endif
     listBox.setRowHeight(40);
     listBox.setModel(this);
     listBox.addMouseListener(this, true);

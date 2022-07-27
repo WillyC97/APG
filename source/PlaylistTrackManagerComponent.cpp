@@ -18,6 +18,10 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
         lnf.setDefaultSansSerifTypeface(lnf.getTypefaceForFont(Fonts::GetFont(Fonts::Regular, 14.f)));
     #endif
 
+    #ifdef APG_TOUCH_UI
+        tableComponent.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
+    #endif
+
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
     tableComponent.getHeader().addColumn("Artist",   3, 300);
@@ -40,7 +44,7 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
-    
+
     infoComp->AddButtonListener(this);
 
     auto transparent = juce::Colours::transparentBlack;
@@ -467,7 +471,7 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
             totalTracksInPlaylist = getNumRows() + 1;
             UpdateDurationLabel();
 
-            
+
             auto songUUID   = juce::Uuid();
 
             std::unique_ptr<juce::XmlElement> track;
@@ -496,7 +500,7 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
 void PlaylistTrackManagerComponent::SetID3v2Tags(juce::XmlElement* track, juce::File& audioFile)
 {
     auto taggedFile = TagLibFileHandler::GetAudioFileProperties(audioFile);
-    
+
     track->setAttribute("Title",  taggedFile.title);
     track->setAttribute("Artist", taggedFile.artist);
     track->setAttribute("Album",  taggedFile.album);
@@ -510,7 +514,7 @@ void PlaylistTrackManagerComponent::UpdateFiles()
     auto editedTrackString = dataList->getChildElement(rowToEdit)
                                      ->getStringAttribute("FileLocation");
     auto editedTrackFile   = juce::File(editedTrackString);
-    
+
     for(auto* element : dataList->getChildWithTagNameIterator("TRACK"))
     {
         auto trackFileString = element->getStringAttribute("FileLocation");
