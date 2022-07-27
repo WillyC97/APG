@@ -444,11 +444,11 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
     }
 }
 //-----------------------------------------------------------------------------
-void PlaylistTrackManagerComponent::ExtractBPM()
+void PlaylistTrackManagerComponent::ExtractBPM(bool shouldReanalyse)
 {
     if(playlistData)
     {
-        MIR = std::make_unique<MIRProcessThread>(dataList, getParentComponent());
+        MIR = std::make_unique<MIRProcessThread>(dataList, getParentComponent(), shouldReanalyse);
         MIR->runThread();
         playlistData->writeTo(playlistXmlFile);
         tableComponent.updateContent();

@@ -9,9 +9,12 @@ class MIRProcessThread
     : public ThreadWithNonModalAlertWindow
 {
 public:
-    MIRProcessThread(juce::XmlElement* trackListToUse, juce::Component* parentToUse)
-        : ThreadWithNonModalAlertWindow(parentToUse)
-        , trackList(trackListToUse)
+    MIRProcessThread( juce::XmlElement* trackListToUse
+                    , juce::Component* parentToUse
+                    , bool reanalyse = false)
+    : ThreadWithNonModalAlertWindow(parentToUse)
+    , trackList(trackListToUse)
+    , shouldReanalyse(reanalyse)
     {
         analysisFinishedWindow = std::make_unique<NonModalAlertWindow>();
         parentToUse->addChildComponent(analysisFinishedWindow.get());
@@ -23,11 +26,13 @@ public:
 
         for (int i = 0; i < tracksToProcess; ++i)
         {
-            
             if (auto* track = trackList->getChildElement(i))
             {
-                auto bpm = AnalyseBpm(track->getStringAttribute("FileLocation").toStdString());
-                track->setAttribute("BPM", juce::roundToInt(bpm));
+                if (track->getStringAttribute("BPM").isEmpty() || shouldReanalyse)
+                {
+                    auto bpm = AnalyseBpm(track->getStringAttribute("FileLocation").toStdString());
+                    track->setAttribute("BPM", juce::roundToInt(bpm));
+                }
             }
             // must check this as often as possible, because this is
             // how we know if the user's pressed 'cancel'
@@ -54,6 +59,7 @@ public:
     
 private:
     juce::XmlElement* trackList;
+    bool shouldReanalyse;
     BpmDetector bpmDetector;
     
     std::unique_ptr<NonModalAlertWindow> analysisFinishedWindow;
