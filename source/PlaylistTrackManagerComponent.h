@@ -64,7 +64,6 @@ public:
     /** triggers when button clicked */
     void buttonClicked(juce::Button* button) override;
     //==============================================================================
-    std::vector<std::string> trackTitles;
 
     /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
