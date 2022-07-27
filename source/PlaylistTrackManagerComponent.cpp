@@ -49,18 +49,19 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::ghostwhite);
     searchBar.onTextChange = [this]
     {
-        int rowCount = 0;
-        for (std::string track : trackTitles)
+        std::string textTyped = searchBar.getText().toLowerCase().toStdString();
+        for(auto* element : dataList->getChildWithTagNameIterator("TRACK"))
         {
-            std::string textTyped = searchBar.getText().toStdString();
-            std::transform(textTyped.begin(), textTyped.end(), textTyped.begin(), ::tolower);
-            std::transform(track.begin(), track.end(), track.begin(), ::tolower);
-            if (track.find(textTyped) != std::string::npos) {
-                tableComponent.selectRow(rowCount);
-                tableComponent.scrollToEnsureRowIsOnscreen(rowCount);
+            auto track = element->getStringAttribute("Title").toLowerCase().toStdString();
+            if(track.find(textTyped) != std::string::npos)
+            {
+                auto row = element->getStringAttribute("No.").getIntValue() - 1;
+                tableComponent.selectRow(row);
+                tableComponent.scrollToEnsureRowIsOnscreen(row);
             }
-            rowCount = rowCount + 1;
         }
+        if(textTyped.empty())
+           tableComponent.deselectAllRows();
     };
 
     playlistLimitReachedLabel.setText("Playlist Duration Limit Reached...", juce::dontSendNotification);
@@ -435,8 +436,7 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
                         ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
             playlistData->writeTo(playlistXmlFile);
             track.reset();
-            
-            trackTitles.push_back(title);
+
             numRows += 1;
         }
         tableComponent.updateContent();
