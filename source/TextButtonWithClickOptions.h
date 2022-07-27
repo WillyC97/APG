@@ -48,8 +48,8 @@ private:
             stopTimer();
             if(onLongPress)
             {
-                onLongPress();
                 hasBeenLongPressed = true;
+                onLongPress();
             }
         }
     }
