@@ -3,6 +3,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PlaylistTrackManagerComponent.h"
 #include "Fonts.h"
+#include "TextButtonWithClickOptions.h"
 
 using namespace APG::internal;
 //==============================================================================
@@ -42,7 +43,12 @@ public:
         applyLimitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
         
         findBPMButton.setButtonText("Find BPM of Tracks");
-        findBPMButton.onClick=[this](){ trackManager.ExtractBPM(); };
+        findBPMButton.onSingleClick=[this](){ trackManager.ExtractBPM(false);};
+        findBPMButton.onShiftClick=[this](){ trackManager.ExtractBPM(true);};
+    #ifdef APG_TOUCH_UI
+        findBPMButton.onLongPress=[this](){ trackManager.ExtractBPM(true);};
+    #endif
+        findBPMButton.onClick=nullptr;
         findBPMButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
         
         addAndMakeVisible(playlistLengthSlider);
@@ -92,7 +98,7 @@ public:
 private:
     PlaylistTrackManagerComponent& trackManager;
     juce::Slider                   playlistLengthSlider;
-    juce::TextButton               findBPMButton;
+    TextButtonWithClickOptions     findBPMButton;
     juce::TextButton               applyLimitButton;
     juce::Label                    currentLimitLabel;
 };

@@ -85,7 +85,7 @@ public:
     
     void LoadPlaylist(const juce::File& xmlFile);
     
-    void ExtractBPM();
+    void ExtractBPM(bool shouldReanalyse);
     //==============================================================================
 private:
     class PlaylistDataSorter;
