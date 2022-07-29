@@ -1,6 +1,6 @@
 #include "TagLibFileHandler.h"
 
-#include "AudioMetadataManager.h"
+#include "AudioMetadataUtils.h"
 #include "BinaryData.h"
 
 #include <fileref.h>
@@ -41,29 +41,21 @@ APG::TaggedFile TagLibFileHandler::GetAudioFileProperties(const juce::File& file
     return fileToTag;
 }
 
-juce::Image TagLibFileHandler::ExtractImageFromFile(const juce::File& file)
+juce::Image TagLibFileHandler::ExtractFrontCoverImageFromFile(const juce::File& file)
 {
-    std::unique_ptr<ID3v2TagContainer> tagContainer;
-    tagContainer = AudioMetadataManager::CreateMetadataReader(file);
-    
     auto missingArtworkImage = juce::ImageCache::getFromMemory( BinaryData::missing_artwork_png
                                                               , BinaryData::missing_artwork_pngSize);
-    if (tagContainer)
+    
+    std::unique_ptr<TagLib::File> tagFile = APG::CreateTagFile(file);
+
+    juce::Image frontCover;
+
+    if (tagFile) 
     {
-        auto metadata = tagContainer->tag;
-        unsigned int numFrames = metadata->frameList("APIC").size();
-        
-        for(unsigned int i = 0; i < numFrames; i++)
-        {
-            TagLib::ID3v2::AttachedPictureFrame* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(metadata->frameList("APIC")[i]);
-                
-            if(frame->type() == TagLib::ID3v2::AttachedPictureFrame::FrontCover)
-                return juce::ImageCache::getFromMemory(frame->picture().data(), frame->size());
-            else
-                return missingArtworkImage;
-        }
+      frontCover = APG::FrontCoverImageFromFromTagFile(*tagFile);
     }
-    return missingArtworkImage;
+
+    return frontCover.isNull() ? missingArtworkImage : frontCover;
 }
 
 

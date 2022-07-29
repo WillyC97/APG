@@ -26,16 +26,17 @@ void AudioThumbnailComp::SetFile(const juce::File& file)
     if (file.existsAsFile())
     {
         thumbnail.setSource(new juce::FileInputSource(file));
+        thumbnailLength = thumbnail.getTotalLength();
         const juce::Range<double> newRange(0.0, thumbnail.getTotalLength());
         SetRange(newRange);
 
-        startTimerHz(60);
+        startTimerHz(30);
     }
 }
 
 void AudioThumbnailComp::SetZoomFactor(double amount)
 {
-    if (thumbnail.getTotalLength() > 0)
+    if (thumbnailLength > 0)
     {
         const double newScale = juce::jmax(0.001, thumbnail.getTotalLength() * (1.0 - juce::jlimit(0.0, 0.99, amount)));
         const double timeAtCentre = XToTime(getWidth() / 2.0f);
@@ -59,7 +60,7 @@ void AudioThumbnailComp::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::slategrey);
 
-    if (thumbnail.getTotalLength() > 0.0)
+    if (thumbnailLength > 0.0)
     {
         juce::Rectangle<int> thumbArea(getLocalBounds());
         thumbnail.drawChannel( g

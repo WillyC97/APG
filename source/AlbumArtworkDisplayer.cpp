@@ -32,11 +32,11 @@ void AlbumArtworkDisplayer::SetTrackToLoad(const juce::XmlElement* track)
     const auto artist         = track->getStringAttribute("Artist");
     
     auto transparent  = juce::Colours::transparentBlack;
-    auto artworkImage = TagLibFileHandler::ExtractImageFromFile(filePath);
-    artworkImageButton.setImages(false, true, true, artworkImage, 0.9f, transparent, artworkImage, 0.5f, transparent, artworkImage, 1.0f, transparent);
+    auto frontCoverImage = TagLibFileHandler::ExtractFrontCoverImageFromFile(filePath);
+    artworkImageButton.setImages(false, true, true, frontCoverImage, 0.9f, transparent, frontCoverImage, 0.5f, transparent, frontCoverImage, 1.0f, transparent);
     
     infoComp->SetTrackToLoad(filePath);
-    infoComp->SetImageToShow(artworkImage);
+    infoComp->SetImageToShow(frontCoverImage);
     
     titleLabel .setText(title,  juce::dontSendNotification);
     artistLabel.setText(artist, juce::dontSendNotification);

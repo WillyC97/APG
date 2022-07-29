@@ -83,6 +83,7 @@ target_sources(APG
         source/AlbumArtworkDisplayer.h
         source/AudioMetadataManager.cpp
         source/AudioMetadataManager.h
+        source/AudioMetadataUtils.h
         source/AudioPlayer.cpp
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
