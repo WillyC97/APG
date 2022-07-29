@@ -239,6 +239,7 @@ void PlaylistTrackManagerComponent::buttonClicked(juce::Button* button)
     }
     else if(button->getButtonText() == "Back")
     {
+        UpdateFiles();
         trackInfoWindow.reset();
     }
 }
@@ -280,6 +281,7 @@ void PlaylistTrackManagerComponent::EditButtonClicked(int row)
                         }
                         else if (result == 1)
                         {
+                            rowToEdit = row;
                             auto fileAsString = dataList->getChildElement(row)
                                                         ->getStringAttribute("FileLocation");
                             infoComp->SetTrackToLoad(juce::File(fileAsString));
@@ -464,20 +466,15 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
             totalTracksInPlaylist = getNumRows() + 1;
             UpdateDurationLabel();
 
-            auto taggedFile = TagLibFileHandler::GetAudioFileProperties(audioFile);
+            
             auto songUUID   = juce::Uuid();
 
             std::unique_ptr<juce::XmlElement> track;
             track = std::make_unique<juce::XmlElement>("TRACK");
 
-            track->setAttribute("No.",    totalTracksInPlaylist);
-            track->setAttribute("Title",  taggedFile.title);
-            track->setAttribute("Artist", taggedFile.artist);
-            track->setAttribute("Album",  taggedFile.album);
-            track->setAttribute("Year",   taggedFile.year);
-            track->setAttribute("Genre",  taggedFile.genre);
-            track->setAttribute("FileLocation", taggedFile.filePath);
-
+            SetID3v2Tags(track.get(), audioFile);
+            track->setAttribute("No.",          totalTracksInPlaylist);
+            track->setAttribute("FileLocation", audioFile.getFullPathName());
             track->setAttribute("Duration",       trackDurationString);
             track->setAttribute("DurationInSecs", trackDurationSecs);
             track->setAttribute("UUID",           songUUID.toString());
@@ -495,6 +492,33 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
     }
 }
 //-----------------------------------------------------------------------------
+void PlaylistTrackManagerComponent::SetID3v2Tags(juce::XmlElement* track, juce::File& audioFile)
+{
+    auto taggedFile = TagLibFileHandler::GetAudioFileProperties(audioFile);
+    
+    track->setAttribute("Title",  taggedFile.title);
+    track->setAttribute("Artist", taggedFile.artist);
+    track->setAttribute("Album",  taggedFile.album);
+    track->setAttribute("Year",   taggedFile.year);
+    track->setAttribute("Genre",  taggedFile.genre);
+    playlistData->writeTo(playlistXmlFile);
+}
+
+void PlaylistTrackManagerComponent::UpdateFiles()
+{
+    auto editedTrackString = dataList->getChildElement(rowToEdit)
+                                     ->getStringAttribute("FileLocation");
+    auto editedTrackFile   = juce::File(editedTrackString);
+    
+    for(auto* element : dataList->getChildWithTagNameIterator("TRACK"))
+    {
+        auto trackFileString = element->getStringAttribute("FileLocation");
+        if(editedTrackString == trackFileString)
+            SetID3v2Tags(element, editedTrackFile);
+    }
+    tableComponent.updateContent();
+    tableComponent.repaint();
+}
 void PlaylistTrackManagerComponent::ExtractBPM(bool shouldReanalyse)
 {
     if(playlistData)

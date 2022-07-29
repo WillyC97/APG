@@ -110,12 +110,15 @@ private:
 
     void         UpdateTrackID();
     void         UpdateDurationLabel();
+    void         UpdateFiles();
+    void         SetID3v2Tags(juce::XmlElement* track, juce::File& audioFile);
     void         RemoveTrackFromPlaylist(int row);
     juce::String secondsToMins(double seconds, bool asText);
     void         SettingsButtonClicked();
     void         EditButtonClicked(int row);
 
     int          numRows = 0;
+    int          rowToEdit;
     int          totalTracksInPlaylist;
     int          lastTrackNoPlayed;
     double       playlistTotalDurationSecs = 0.0;
