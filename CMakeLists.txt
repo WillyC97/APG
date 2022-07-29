@@ -79,6 +79,10 @@ juce_add_gui_app(APG
 
 target_sources(APG
     PRIVATE
+        source/AlbumArtworkDisplayer.cpp
+        source/AlbumArtworkDisplayer.h
+        source/AudioMetadataManager.cpp
+        source/AudioMetadataManager.h
         source/AudioPlayer.cpp
         source/AudioPlayer.h
         source/AudioThumbnailComp.cpp
@@ -100,6 +104,10 @@ target_sources(APG
         source/PlaylistTrackManagerComponent.cpp
         source/PlaylistTrackManagerComponent.h
         source/SidePanelWithBrowser.h
+        source/TagLibFileHandler.cpp
+        source/TagLibFileHandler.h
+        source/TrackInfoComponent.cpp
+        source/TrackInfoComponent.h
         source/TransportSlider.h
         source/ThreadWithNonModalAlertWindow.cpp
         source/ThreadWithNonModalAlertWindow.h
@@ -138,6 +146,7 @@ endif()
 juce_add_binary_data(BinaryData
       SOURCES
           resources/cross.png
+          resources/missing_artwork.png
           resources/play.png
           resources/pause.png
           resources/settings.png

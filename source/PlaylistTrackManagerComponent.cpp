@@ -4,6 +4,8 @@
 #include "BinaryData.h"
 #include "Fonts.h"
 
+#include "TagLibFileHandler.h"
+
 using namespace APG::internal;
 
 PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatManager& _formatManager)
@@ -14,39 +16,42 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
         auto& lnf = getLookAndFeel();
         lnf.setDefaultSansSerifTypeface(lnf.getTypefaceForFont(Fonts::GetFont(Fonts::Regular, 14.f)));
     #endif
-    
+
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
-    tableComponent.getHeader().addColumn("Duration", 3, 200);
-    tableComponent.getHeader().addColumn("BPM",      4, 12);
-    tableComponent.getHeader().addColumn("Play",     5, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove",   6, 65, 65, 65);
+    tableComponent.getHeader().addColumn("Artist",   3, 300);
+    tableComponent.getHeader().addColumn("Album",    4, 300);
+    tableComponent.getHeader().addColumn("Duration", 5, 200);
+    tableComponent.getHeader().addColumn("BPM",      6, 12);
+    tableComponent.getHeader().addColumn("Play",     7, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Remove",   8, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
     tableComponent.setRowHeight(52);
     tableComponent.setModel(this);
-    
+
     tableComponent.getVerticalScrollBar()  .setColour( juce::ScrollBar::thumbColourId
                                                       , juce::Colour(0xFFb8b8b8));
     tableComponent.getHorizontalScrollBar().setColour( juce::ScrollBar::thumbColourId
                                                      , juce::Colour(0xFFb8b8b8));
-    
+
     addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
-    
+
     auto transparent = juce::Colours::transparentBlack;
     auto settingsButtonImage = juce::ImageCache::getFromMemory(BinaryData::settings_png, BinaryData::settings_pngSize);
     settingsButton.setImages(false, true, true, settingsButtonImage, 1.f, transparent, settingsButtonImage,
                              1.f, juce::Colours::white, settingsButtonImage, 0.8f, transparent);
     settingsButton.onClick=[this](){ SettingsButtonClicked(); };
-    
+
     searchBar.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xFF878787));
     searchBar.setColour(juce::TextEditor::textColourId, juce::Colours::ghostwhite);
     searchBar.setColour(juce::TextEditor::outlineColourId, juce::Colours::transparentWhite);
     searchBar.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::transparentWhite);
     searchBar.setTextToShowWhenEmpty("Search playlist", juce::Colours::ghostwhite);
+    searchBar.setKeyboardType(juce::TextInputTarget::VirtualKeyboardType::textKeyboard);
     searchBar.onTextChange = [this]
     {
         std::string textTyped = searchBar.getText().toLowerCase().toStdString();
@@ -66,7 +71,7 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
 
     playlistLimitReachedLabel.setText("Playlist Duration Limit Reached...", juce::dontSendNotification);
     playlistLimitReachedLabel.setColour(juce::Label::textColourId, juce::Colours::turquoise);
-    
+
     addAndMakeVisible(tableComponent);
     addAndMakeVisible(searchBar);
     addAndMakeVisible(addButton);
@@ -85,7 +90,7 @@ void PlaylistTrackManagerComponent::paint(juce::Graphics& g)
     getLookAndFeel().setColour(juce::TableHeaderComponent::backgroundColourId, juce::Colour(0xFF1c1c1c));
     getLookAndFeel().setColour(juce::TableHeaderComponent::textColourId,       juce::Colour(0xFFb8b8b8));
     getLookAndFeel().setColour(juce::TableHeaderComponent::outlineColourId,    juce::Colours::transparentBlack);
-    
+
     auto totalArea    = getLocalBounds();
     auto bannerHeight = totalArea.proportionOfHeight(0.15);
     auto bannerArea   = totalArea.removeFromTop(bannerHeight);
@@ -107,14 +112,14 @@ void PlaylistTrackManagerComponent::resized()
     auto leftBannerArea  = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.5));
     auto labelArea       = leftBannerArea.removeFromBottom(bannerArea.proportionOfHeight(0.2));
     auto durationLblArea = labelArea.removeFromLeft(labelArea.proportionOfWidth(0.5));
-    
+
     playlistNameLabel        .setBounds(leftBannerArea);
     playlistDurationLabel    .setBounds(durationLblArea);
     playlistLimitReachedLabel.setBounds(labelArea);
     playlistNameLabel        .setFont(Fonts::GetFont(Fonts::Type::SemiBold, leftBannerArea.getHeight()));
     playlistDurationLabel    .setFont(Fonts::GetFont(Fonts::Type::Thin, labelArea.getHeight()));
     playlistLimitReachedLabel.setFont(Fonts::GetFont(Fonts::Type::Regular, labelArea.getHeight()));
-    
+
     auto settingsButtonArea = bannerArea.removeFromLeft(bannerArea.proportionOfWidth(0.1));
     bannerArea.removeFromLeft(widthPadding);
     bannerArea.removeFromRight(widthPadding);
@@ -144,7 +149,7 @@ void PlaylistTrackManagerComponent::paintCell(juce::Graphics& g, int rowNumber, 
             g.setColour(juce::Colours::turquoise);
         else
             g.setColour(juce::Colours::ghostwhite);
-            
+
         auto columnName = tableComponent.getHeader().getColumnName(columnId);
         auto justification = columnName == "No." ? juce::Justification::centred : juce::Justification::centredLeft;
         auto text = rowElement->getStringAttribute(columnName);
@@ -159,13 +164,13 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
                                                                    , bool /*isRowSelected*/
                                                                    , juce::Component* existingComponentToUpdate)
 {
-    if (columnId == 5)
+    if (columnId == 7)
     {
         auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
-        
+
         if (playButton == nullptr)
             playButton = new TableImageButtonCustomComponent();
-        
+
         auto playImage = juce::ImageCache::getFromMemory( BinaryData::play_png
                                                         , BinaryData::play_pngSize);
 
@@ -175,14 +180,14 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
         playButton->ButtonPressed = [=] (int row) { RowPlayButtonClicked(row); };
         return playButton;
     }
-    
-    if (columnId == 6)
+
+    if (columnId == 8)
     {
         auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
         if (deleteButton == nullptr)
             deleteButton = new TableImageButtonCustomComponent();
-        
+
         auto deleteButtonImage = juce::ImageCache::getFromMemory( BinaryData::cross_png
                                                                 , BinaryData::cross_pngSize);
 
@@ -330,7 +335,7 @@ void PlaylistTrackManagerComponent::SetPlaylistLimit(double limit)
         playlistData->getChildByName("PLAYLISTINFO")
                     ->setAttribute("PlaylistDurationLimit", playlistTotalTimeLimitSecs);
         playlistData->writeTo(playlistXmlFile);
-        
+
         while (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
             RemoveTrackFromPlaylist(getNumRows() - 1);
     }
@@ -347,17 +352,17 @@ juce::String PlaylistTrackManagerComponent::secondsToMins(double seconds, bool a
     juce::String songLengthString = "";
     juce::String lhs;
     juce::String rhs;
-    
+
     int secs = int(seconds) % 60;
     int mins = (int(seconds) - (secs)) / 60;
-    
+
     lhs = juce::String(mins);
     rhs = juce::String(secs);
-    
+
     auto lhsDesc = mins > 60 ? " hr "  : " min ";
     auto rhsDesc = mins > 60 ? " min"  : " sec";
     auto additionalZero = secs < 10 ? "0" : "";
-    
+
     if (mins > 60)
     {
         int hrs = mins / 60;
@@ -365,12 +370,12 @@ juce::String PlaylistTrackManagerComponent::secondsToMins(double seconds, bool a
         lhs = juce::String(hrs);
         rhs = juce::String(mins);
     }
-        
+
     if (asText)
         songLengthString = lhs + lhsDesc + rhs + rhsDesc;
     else
         songLengthString = lhs + ":" + additionalZero + rhs;
-    
+
     return songLengthString;
 }
 //==============================================================================
@@ -387,7 +392,7 @@ void PlaylistTrackManagerComponent::LoadPlaylist(const juce::File &xmlFile)
     playlistTotalDurationSecs  = playlistInfo->getDoubleAttribute("PlaylistDurationSecs");
     playlistTotalTimeLimitSecs = playlistInfo->getDoubleAttribute("PlaylistDurationLimit", 600);
     numRows                    = dataList->getNumChildElements();
-    
+
     UpdateDurationLabel();
     playlistNameLabel.setText(playlistName, juce::dontSendNotification);
     tableComponent.updateContent();
@@ -406,7 +411,7 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
             auto sampleRate            = reader->sampleRate;
             auto trackDurationSecs     = lengthInSamples/sampleRate;
             playlistTotalDurationSecs += trackDurationSecs;
-            
+
             if (playlistTotalDurationSecs > playlistTotalTimeLimitSecs)
             {
                 playlistLimitReachedLabel.setVisible(true);
@@ -416,21 +421,29 @@ void PlaylistTrackManagerComponent::insertTracks(juce::File& audioFile)
                 return;
             }
 
-            auto title               = audioFile.getFileNameWithoutExtension().toStdString();
-            auto artist              = audioFile.getFileNameWithoutExtension().toStdString();
             auto trackDurationString = secondsToMins(trackDurationSecs, false);
-            
+
             totalTracksInPlaylist = getNumRows() + 1;
             UpdateDurationLabel();
-            
+
+            auto taggedFile = TagLibFileHandler::GetAudioFileProperties(audioFile);
+            auto songUUID   = juce::Uuid();
+
             std::unique_ptr<juce::XmlElement> track;
             track = std::make_unique<juce::XmlElement>("TRACK");
-            track->setAttribute("No.", totalTracksInPlaylist);
-            track->setAttribute("Title", title);
-            track->setAttribute("Duration", trackDurationString);
-            track->setAttribute("FileLocation", audioFile.getFullPathName());
+
+            track->setAttribute("No.",    totalTracksInPlaylist);
+            track->setAttribute("Title",  taggedFile.title);
+            track->setAttribute("Artist", taggedFile.artist);
+            track->setAttribute("Album",  taggedFile.album);
+            track->setAttribute("Year",   taggedFile.year);
+            track->setAttribute("Genre",  taggedFile.genre);
+            track->setAttribute("FileLocation", taggedFile.filePath);
+
+            track->setAttribute("Duration",       trackDurationString);
             track->setAttribute("DurationInSecs", trackDurationSecs);
-            track->setAttribute("UUID", juce::Uuid().toString());
+            track->setAttribute("UUID",           songUUID.toString());
+
             dataList    ->addChildElement(track.release());
             playlistData->getChildByName("PLAYLISTINFO")
                         ->setAttribute("PlaylistDurationSecs", playlistTotalDurationSecs);
@@ -520,4 +533,3 @@ int PlaylistTrackManagerComponent::PlaylistDataSorter::compareElements(juce::Xml
 
     return direction * result;
 }
-
