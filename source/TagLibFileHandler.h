@@ -22,7 +22,18 @@ namespace APG
 class TagLibFileHandler
 {
 public:
+    enum class Attribute
+    {
+        TITLE,
+        ALBUM,
+        ARTIST,
+        GENRE,
+        YEAR
+    };
+    
     static APG::TaggedFile GetAudioFileProperties(const juce::File& file);
     
     static juce::Image ExtractImageFromFile(const juce::File& file);
+    
+    static void SetTagAttribute(const juce::File& file, TagLibFileHandler::Attribute attribute, juce::String value);
 };
