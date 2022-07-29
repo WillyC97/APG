@@ -52,6 +52,8 @@ private:
     bool isFollowingTransport;
     bool shouldPaintAsHighlighted = false;
 
+    double thumbnailLength{};
+
     float TimeToX(const double time) const;
     double XToTime(const float x) const;
 

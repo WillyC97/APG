@@ -24,5 +24,5 @@ class TagLibFileHandler
 public:
     static APG::TaggedFile GetAudioFileProperties(const juce::File& file);
     
-    static juce::Image ExtractImageFromFile(const juce::File& file);
+    static juce::Image ExtractFrontCoverImageFromFile(const juce::File& file);
 };
