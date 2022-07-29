@@ -31,6 +31,9 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     addPlaylistButton.onClick=[this](){ LaunchDialogBox(); createPlaylistSwitch = true; };
     addAndMakeVisible(addPlaylistButton);
     
+    #ifdef APG_TOUCH_UI
+        listBox.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
+    #endif
     listBox.setRowHeight(40);
     listBox.setModel(this);
     listBox.addMouseListener(this, true);
@@ -101,36 +104,17 @@ void PlaylistCreationComponent::selectedRowsChanged(int lastRowSelected)
 void PlaylistCreationComponent::listBoxItemClicked(int row, const juce::MouseEvent& e)
 {
     if(e.mods.isRightButtonDown())
-    {
-        juce::PopupMenu m;
-        m.addItem (1, "Delete Playlist");
-        m.addItem(2, "Rename Playlist");
-
-        m.showMenuAsync (juce::PopupMenu::Options(),
-                         [=] (int result)
-                        {
-                            if (result == 0)
-                            {
-                                DBG("user dismissed the menu without picking anything");
-                            }
-                            else if (result == 1)
-                            {
-                                if (getNumRows() != 1)
-                                {
-                                    lastPlaylistClicked.deleteFile();
-                                    UpdateContent();
-                                    selectedRowsChanged(0);
-                                }
-                            }
-                            else if (result == 2)
-                            {
-                                createPlaylistSwitch = false;
-                                LaunchDialogBox();
-                                selectedRowsChanged(row);
-                            }
-                        });
-    }
+        ShowPopupMenu(row);
 }
+//------------------------------------------------------------------------------
+
+void PlaylistCreationComponent::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
+{
+#ifdef APG_TOUCH_UI
+    ShowPopupMenu(row);
+#endif
+}
+//------------------------------------------------------------------------------
 
 void PlaylistCreationComponent::buttonClicked(juce::Button *button)
 {
@@ -201,6 +185,37 @@ void PlaylistCreationComponent::LaunchDialogBox()
     nmaw->AddButtonListener(this);
     parent->addAndMakeVisible(nmaw.get());
     nmaw->resized();
+}
+//------------------------------------------------------------------------------
+void PlaylistCreationComponent::ShowPopupMenu(int row)
+{
+    juce::PopupMenu m;
+    m.addItem (1, "Delete Playlist");
+    m.addItem (2, "Rename Playlist");
+
+    m.showMenuAsync (juce::PopupMenu::Options(),
+                     [=] (int result)
+                    {
+                        if (result == 0)
+                        {
+                            DBG("user dismissed the menu without picking anything");
+                        }
+                        else if (result == 1)
+                        {
+                            if (getNumRows() != 1)
+                            {
+                                lastPlaylistClicked.deleteFile();
+                                UpdateContent();
+                                selectedRowsChanged(0);
+                            }
+                        }
+                        else if (result == 2)
+                        {
+                            createPlaylistSwitch = false;
+                            LaunchDialogBox();
+                            selectedRowsChanged(row);
+                        }
+                    });
 }
 //------------------------------------------------------------------------------
 void PlaylistCreationComponent::SetPlaylistNames()

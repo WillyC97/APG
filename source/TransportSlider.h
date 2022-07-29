@@ -12,7 +12,7 @@ public:
     TransportSlider(AudioPlayer& _transportSource)
     : transportSource(_transportSource)
     {
-        startTimerHz(40);
+        startTimerHz(30);
         
         slider.setColour(juce::Slider::backgroundColourId, juce::Colours::slategrey);
         slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);

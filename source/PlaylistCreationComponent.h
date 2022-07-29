@@ -21,6 +21,7 @@ public:
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged(int lastRowSelected) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
+    void listBoxItemDoubleClicked (int row, const juce::MouseEvent&) override;
     void buttonClicked(juce::Button* button) override;
     
     juce::File& GetPlaylist();
@@ -33,6 +34,7 @@ private:
     void UpdateContent();
     
     void LaunchDialogBox();
+    void ShowPopupMenu(int row);
     
     void mouseEnter(const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
     void mouseExit (const juce::MouseEvent& event) override { UpdateRowComponentState(event); }
