@@ -76,6 +76,7 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
            tableComponent.deselectAllRows();
     };
 
+    playlistNameLabel.setText("Select a Playlist", juce::dontSendNotification);
     playlistLimitReachedLabel.setText("Playlist Duration Limit Reached...", juce::dontSendNotification);
     playlistLimitReachedLabel.setColour(juce::Label::textColourId, juce::Colours::turquoise);
 
