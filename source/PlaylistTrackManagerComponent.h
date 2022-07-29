@@ -3,8 +3,10 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <vector>
 
-#include "SidePanelWithBrowser.h"
 #include "MIR.h"
+#include "NonModalAlertWindow.h"
+#include "SidePanelWithBrowser.h"
+#include "TrackInfoComponent.h"
 
 class PlaylistTrackManagerComponent
     : public juce::Component
@@ -111,6 +113,7 @@ private:
     void         RemoveTrackFromPlaylist(int row);
     juce::String secondsToMins(double seconds, bool asText);
     void         SettingsButtonClicked();
+    void         EditButtonClicked(int row);
 
     int          numRows = 0;
     int          totalTracksInPlaylist;
@@ -121,7 +124,9 @@ private:
 
     juce::ListenerList<Listener> listeners;
     
-    std::unique_ptr<MIRProcessThread> MIR;
+    std::unique_ptr<MIRProcessThread>    MIR;
+    std::unique_ptr<TrackInfoComponent>  infoComp;
+    std::unique_ptr<NonModalAlertWindow> trackInfoWindow;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistTrackManagerComponent)
 };

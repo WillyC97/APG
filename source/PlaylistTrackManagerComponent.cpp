@@ -11,6 +11,7 @@ using namespace APG::internal;
 PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatManager& _formatManager)
 : formatManager(_formatManager)
 , sidePanel(this)
+, infoComp(std::make_unique<TrackInfoComponent>(false))
 {
     #ifndef JUCE_LINUX
         auto& lnf = getLookAndFeel();
@@ -22,9 +23,9 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     tableComponent.getHeader().addColumn("Artist",   3, 300);
     tableComponent.getHeader().addColumn("Album",    4, 300);
     tableComponent.getHeader().addColumn("Duration", 5, 200);
-    tableComponent.getHeader().addColumn("BPM",      6, 12);
+    tableComponent.getHeader().addColumn("BPM",      6, 50);
     tableComponent.getHeader().addColumn("Play",     7, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Remove",   8, 65, 65, 65);
+    tableComponent.getHeader().addColumn("Edit",     8, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
@@ -39,6 +40,8 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     addButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1c1c1c));
     addButton.setButtonText("Browse Files");
     addButton.onClick=[this](){ sidePanel.showOrHide(!sidePanel.isPanelShowing()); };
+    
+    infoComp->AddButtonListener(this);
 
     auto transparent = juce::Colours::transparentBlack;
     auto settingsButtonImage = juce::ImageCache::getFromMemory(BinaryData::settings_png, BinaryData::settings_pngSize);
@@ -188,13 +191,13 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
         if (deleteButton == nullptr)
             deleteButton = new TableImageButtonCustomComponent();
 
-        auto deleteButtonImage = juce::ImageCache::getFromMemory( BinaryData::cross_png
-                                                                , BinaryData::cross_pngSize);
+        auto deleteButtonImage = juce::ImageCache::getFromMemory( BinaryData::settings_png
+                                                                , BinaryData::settings_pngSize);
 
         deleteButton->setRowAndColumn (rowNumber, columnId);
         auto transparent = juce::Colours::transparentBlack;
         deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
-        deleteButton->ButtonPressed = [=] (int row) { RemoveTrackFromPlaylist(row); };
+        deleteButton->ButtonPressed = [=] (int row) { EditButtonClicked(row); };
         return deleteButton;
     }
 
@@ -228,14 +231,18 @@ void PlaylistTrackManagerComponent::cellDoubleClicked (int rowNumber, int /*colu
 //-----------------------------------------------------------------------------
 void PlaylistTrackManagerComponent::buttonClicked(juce::Button* button)
 {
-    auto buttonName = button->getComponentID();
-    if(buttonName == "add")
+    if(button->getComponentID() == "add")
     {
         auto files = sidePanel.GetFiles();
         for(auto id : files)
             insertTracks(id);
     }
+    else if(button->getButtonText() == "Back")
+    {
+        trackInfoWindow.reset();
+    }
 }
+//-----------------------------------------------------------------------------
 void PlaylistTrackManagerComponent::SettingsButtonClicked()
 {
     juce::PopupMenu m;
@@ -253,6 +260,37 @@ void PlaylistTrackManagerComponent::SettingsButtonClicked()
                             auto currentRows = getNumRows() - 1;
                             for (int i = currentRows; i >= 0; i--)
                                 RemoveTrackFromPlaylist(i);
+                        }
+                    });
+}
+//-----------------------------------------------------------------------------
+
+void PlaylistTrackManagerComponent::EditButtonClicked(int row)
+{
+    juce::PopupMenu m;
+    m.addItem (1, "Edit track");
+    m.addItem (2, "Remove track");
+
+    m.showMenuAsync (juce::PopupMenu::Options(),
+                    [=] (int result)
+                    {
+                        if (result == 0)
+                        {
+                            DBG("user dismissed the menu without picking anything");
+                        }
+                        else if (result == 1)
+                        {
+                            auto fileAsString = dataList->getChildElement(row)
+                                                        ->getStringAttribute("FileLocation");
+                            infoComp->SetTrackToLoad(juce::File(fileAsString));
+                            trackInfoWindow     = std::make_unique<NonModalAlertWindow>(500, 350);
+                            getParentComponent()->addAndMakeVisible(trackInfoWindow.get());
+                            trackInfoWindow     ->AddCustomComponent(infoComp.get());
+                            trackInfoWindow     ->resized();
+                        }
+                        else if ( result == 2)
+                        {
+                            RemoveTrackFromPlaylist(row);
                         }
                     });
 }
