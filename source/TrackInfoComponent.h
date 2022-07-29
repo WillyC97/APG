@@ -6,7 +6,7 @@ class TrackInfoComponent
     : public juce::Component
 {
 public:
-    TrackInfoComponent();
+    TrackInfoComponent(bool readOnly);
     
     void SetTrackToLoad(const juce::File& file);
     void SetImageToShow(juce::Image& image);
@@ -15,6 +15,7 @@ public:
     void RemoveButtonListener(juce::Button::Listener* l) { backButton.removeListener(l); }
     
 private:
+    juce::File       trackFile;
     juce::Label      artistNameLabel;
     juce::Label      trackNameLabel;
     juce::Label      albumNameLabel;
