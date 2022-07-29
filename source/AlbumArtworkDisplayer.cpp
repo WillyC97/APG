@@ -6,7 +6,7 @@
 using namespace APG::internal;
 //==============================================================================
 AlbumArtworkDisplayer::AlbumArtworkDisplayer()
-: infoComp(std::make_unique<TrackInfoComponent>())
+: infoComp(std::make_unique<TrackInfoComponent>(true))
 {
     infoComp->AddButtonListener(this);
     addAndMakeVisible(artworkImageButton);
@@ -36,7 +36,6 @@ void AlbumArtworkDisplayer::SetTrackToLoad(const juce::XmlElement* track)
     artworkImageButton.setImages(false, true, true, artworkImage, 0.9f, transparent, artworkImage, 0.5f, transparent, artworkImage, 1.0f, transparent);
     
     infoComp->SetTrackToLoad(filePath);
-    infoComp->SetImageToShow(artworkImage);
     
     titleLabel .setText(title,  juce::dontSendNotification);
     artistLabel.setText(artist, juce::dontSendNotification);

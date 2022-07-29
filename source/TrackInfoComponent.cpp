@@ -2,7 +2,7 @@
 
 #include "TagLibFileHandler.h"
 
-TrackInfoComponent::TrackInfoComponent()
+TrackInfoComponent::TrackInfoComponent(bool readOnly)
 {
     setAlwaysOnTop(true);
     backButton.setButtonText("Back");
@@ -26,6 +26,16 @@ TrackInfoComponent::TrackInfoComponent()
     addAndMakeVisible(staticFormatLabel);
     addAndMakeVisible(albumArtwork);
     addAndMakeVisible(backButton);
+
+    artistNameLabel.setEditable(false, !readOnly);
+    trackNameLabel .setEditable(false, !readOnly);
+    albumNameLabel .setEditable(false, !readOnly);
+    genreLabel     .setEditable(false, !readOnly);
+    
+    artistNameLabel.onTextChange=[=](){ TagLibFileHandler::SetTagAttribute(trackFile, TagLibFileHandler::Attribute::ARTIST, artistNameLabel.getText()); };
+    trackNameLabel .onTextChange=[=](){ TagLibFileHandler::SetTagAttribute(trackFile, TagLibFileHandler::Attribute::TITLE,  trackNameLabel .getText()); };
+    albumNameLabel .onTextChange=[=](){ TagLibFileHandler::SetTagAttribute(trackFile, TagLibFileHandler::Attribute::ALBUM,  albumNameLabel .getText()); };
+    genreLabel     .onTextChange=[=](){ TagLibFileHandler::SetTagAttribute(trackFile, TagLibFileHandler::Attribute::GENRE,  genreLabel     .getText()); };
     
     staticArtistNameLabel.attachToComponent(&artistNameLabel, true);
     staticTrackNameLabel .attachToComponent(&trackNameLabel, true);
@@ -38,6 +48,7 @@ TrackInfoComponent::TrackInfoComponent()
 
 void TrackInfoComponent::SetTrackToLoad(const juce::File &file)
 {
+    trackFile = file;
     auto taggedFile = TagLibFileHandler::GetAudioFileProperties(file);
     
     artistNameLabel.setText(taggedFile.artist, juce::dontSendNotification);
@@ -55,6 +66,9 @@ void TrackInfoComponent::SetTrackToLoad(const juce::File &file)
     staticBitrateLabel   .setText("Bitrate: ",    juce::dontSendNotification);
     staticSamplerateLabel.setText("Samplerate: ", juce::dontSendNotification);
     staticFormatLabel    .setText("Format: ",     juce::dontSendNotification);
+    
+    auto image = TagLibFileHandler::ExtractImageFromFile(file);
+    SetImageToShow(image);
 }
 
 void TrackInfoComponent::SetImageToShow(juce::Image &image)

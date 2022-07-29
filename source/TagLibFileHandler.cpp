@@ -27,7 +27,7 @@ APG::TaggedFile TagLibFileHandler::GetAudioFileProperties(const juce::File& file
         fileToTag.artist = tag->artist().isEmpty() ? "Unknown Artist" : tag->artist().to8Bit();
         fileToTag.album  = tag->album() .isEmpty() ? "Unknown Album"  : tag->album() .to8Bit();
         fileToTag.genre  = tag->genre() .isEmpty() ? "Unknown Genre"  : tag->genre() .to8Bit();
-//        fileToTag.year   = tag->year()  == 0       ? "Unknown Year"   : tag->year()  .to8Bit();
+        fileToTag.year   = tag->year()  == 0       ? "Unknown Year"   : juce::String(tag->year()).toStdString();
     }
     
     if(!f.isNull() && f.audioProperties())
@@ -39,6 +39,42 @@ APG::TaggedFile TagLibFileHandler::GetAudioFileProperties(const juce::File& file
     }
     
     return fileToTag;
+}
+
+void TagLibFileHandler::SetTagAttribute(const juce::File& file, TagLibFileHandler::Attribute attribute, juce::String value)
+{
+    auto val = TagLib::String(value.toUTF8());
+    auto filepath = file.getFullPathName();
+    
+    TagLib::FileRef f(filepath.toUTF8());
+
+    if(!f.isNull() && f.tag())
+    {
+        TagLib::Tag *tag = f.tag();
+        
+        switch (attribute)
+        {
+            case Attribute::TITLE:
+                tag->setTitle(val);
+                break;
+            case Attribute::ALBUM:
+                tag->setAlbum(val);
+                break;
+            case Attribute::ARTIST:
+                tag->setArtist(val);
+                break;
+            case Attribute::GENRE:
+                tag->setGenre(val);
+                break;
+            case Attribute::YEAR:
+                tag->setYear(val.toInt());
+                break;
+            default:
+                break;
+        }
+        
+        f.save();
+    }
 }
 
 juce::Image TagLibFileHandler::ExtractImageFromFile(const juce::File& file)

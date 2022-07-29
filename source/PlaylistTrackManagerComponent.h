@@ -3,8 +3,10 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <vector>
 
-#include "SidePanelWithBrowser.h"
 #include "MIR.h"
+#include "NonModalAlertWindow.h"
+#include "SidePanelWithBrowser.h"
+#include "TrackInfoComponent.h"
 
 class PlaylistTrackManagerComponent
     : public juce::Component
@@ -108,11 +110,15 @@ private:
 
     void         UpdateTrackID();
     void         UpdateDurationLabel();
+    void         UpdateFiles();
+    void         SetID3v2Tags(juce::XmlElement* track, juce::File& audioFile);
     void         RemoveTrackFromPlaylist(int row);
     juce::String secondsToMins(double seconds, bool asText);
     void         SettingsButtonClicked();
+    void         EditButtonClicked(int row);
 
     int          numRows = 0;
+    int          rowToEdit;
     int          totalTracksInPlaylist;
     int          lastTrackNoPlayed;
     double       playlistTotalDurationSecs = 0.0;
@@ -121,7 +127,9 @@ private:
 
     juce::ListenerList<Listener> listeners;
     
-    std::unique_ptr<MIRProcessThread> MIR;
+    std::unique_ptr<MIRProcessThread>    MIR;
+    std::unique_ptr<TrackInfoComponent>  infoComp;
+    std::unique_ptr<NonModalAlertWindow> trackInfoWindow;
                               
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlaylistTrackManagerComponent)
 };
@@ -151,6 +159,7 @@ public:
     
     void resized() override;
 
+    void SetIsVisible(bool shouldBeVisible);
     void setRowAndColumn (int newRow, int newColumn);
     //==============================================================================
 private:
