@@ -28,7 +28,7 @@ followed by
 
 This <i>should</i> build the essentia static library. The likelihood of encountering issues here is higher on macOS than Linux.
 
-Next, essentia's dependencies should be compiled. this is completed by entering the `/packages` folder within essentia and running `./build_3rdparty_static_debian.sh`.
+Next, essentia's dependencies should be compiled. this is completed by entering the `/packaging` folder within essentia and running `./build_3rdparty_static_debian.sh`.
 
 If anything fails or a higher level of customisation is required, the individual scripts for installing the libs can be found in `/packaging/debian_3rdparty`
 
