@@ -159,6 +159,7 @@ public:
     
     void resized() override;
 
+    void SetIsVisible(bool shouldBeVisible);
     void setRowAndColumn (int newRow, int newColumn);
     //==============================================================================
 private:

@@ -164,7 +164,7 @@ void PlaylistTrackManagerComponent::paintCell(juce::Graphics& g, int rowNumber, 
 //-----------------------------------------------------------------------------
 juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int rowNumber
                                                                    , int columnId
-                                                                   , bool /*isRowSelected*/
+                                                                   , bool isRowSelected
                                                                    , juce::Component* existingComponentToUpdate)
 {
     if (columnId == 7)
@@ -196,7 +196,8 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
 
         deleteButton->setRowAndColumn (rowNumber, columnId);
         auto transparent = juce::Colours::transparentBlack;
-        deleteButton->SetButtonImages(false, true, true, juce::Image(), 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
+        deleteButton->SetIsVisible(isRowSelected);
+        deleteButton->SetButtonImages(false, true, true, deleteButtonImage, 0.9f, transparent, deleteButtonImage, 0.5f, transparent, deleteButtonImage, 1.0f, transparent);
         deleteButton->ButtonPressed = [=] (int row) { EditButtonClicked(row); };
         return deleteButton;
     }
@@ -568,6 +569,10 @@ void TableImageButtonCustomComponent::SetButtonImages( const bool resizeButtonNo
 void TableImageButtonCustomComponent::resized()
 {
     button.setBoundsInset(juce::BorderSize<int> (14));
+}
+void TableImageButtonCustomComponent::SetIsVisible(bool shouldBeVisible)
+{
+    button.setVisible(shouldBeVisible);
 }
 //-----------------------------------------------------------------------------
 void TableImageButtonCustomComponent::setRowAndColumn (int newRow, int newColumn)
