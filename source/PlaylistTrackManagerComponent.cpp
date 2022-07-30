@@ -28,8 +28,9 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     tableComponent.getHeader().addColumn("Album",    4, 300);
     tableComponent.getHeader().addColumn("Duration", 5, 200);
     tableComponent.getHeader().addColumn("BPM",      6, 50);
-    tableComponent.getHeader().addColumn("Play",     7, 50, 50, 50);
-    tableComponent.getHeader().addColumn("Edit",     8, 65, 65, 65);
+    tableComponent.getHeader().addColumn("Key",      7, 50);
+    tableComponent.getHeader().addColumn("Play",     8, 50, 50, 50);
+    tableComponent.getHeader().addColumn("Edit",     9, 65, 65, 65);
 
     tableComponent.getHeader().setStretchToFitActive(true);
     tableComponent.setHeaderHeight(35);
@@ -172,7 +173,7 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
                                                                    , bool isRowSelected
                                                                    , juce::Component* existingComponentToUpdate)
 {
-    if (columnId == 7)
+    if (columnId == 8)
     {
         auto* playButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
@@ -189,7 +190,7 @@ juce::Component* PlaylistTrackManagerComponent::refreshComponentForCell( int row
         return playButton;
     }
 
-    if (columnId == 8)
+    if (columnId == 9)
     {
         auto* deleteButton = static_cast<TableImageButtonCustomComponent*> (existingComponentToUpdate);
 
@@ -525,11 +526,14 @@ void PlaylistTrackManagerComponent::UpdateFiles()
     tableComponent.updateContent();
     tableComponent.repaint();
 }
-void PlaylistTrackManagerComponent::ExtractBPM(bool shouldReanalyse)
+void PlaylistTrackManagerComponent::PerformMIR(bool shouldReanalyse, AlgorithmType algo)
 {
     if(playlistData)
     {
-        MIR = std::make_unique<MIRProcessThread>(dataList, getParentComponent(), shouldReanalyse);
+        MIR = std::make_unique<MIRProcessThread>( dataList
+                                                , getParentComponent()
+                                                , algo
+                                                , shouldReanalyse);
         MIR->runThread();
         playlistData->writeTo(playlistXmlFile);
         tableComponent.updateContent();

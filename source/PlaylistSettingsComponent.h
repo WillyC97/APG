@@ -43,17 +43,25 @@ public:
         applyLimitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
         
         findBPMButton.setButtonText("Find BPM of Tracks");
-        findBPMButton.onSingleClick=[this](){ trackManager.ExtractBPM(false);};
-        findBPMButton.onShiftClick=[this](){ trackManager.ExtractBPM(true);};
+        findBPMButton.onSingleClick=[this](){ trackManager.PerformMIR(false, AlgorithmType::BPM); };
+        findBPMButton.onShiftClick =[this](){ trackManager.PerformMIR(true,  AlgorithmType::BPM); };
     #ifdef APG_TOUCH_UI
-        findBPMButton.onLongPress=[this](){ trackManager.ExtractBPM(true);};
+        findBPMButton.onLongPress  =[this](){ trackManager.PerformMIR(true,  AlgorithmType::BPM); };
     #endif
-        findBPMButton.onClick=nullptr;
         findBPMButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+        
+        findKeyButton.setButtonText("Find Key of Tracks");
+        findKeyButton.onSingleClick=[this](){ trackManager.PerformMIR(false, AlgorithmType::KEY); };
+        findKeyButton.onShiftClick =[this](){ trackManager.PerformMIR(true,  AlgorithmType::KEY); };
+    #ifdef APG_TOUCH_UI
+        findKeyButton.onLongPress  =[this](){ trackManager.PerformMIR(true,  AlgorithmType::KEY); };
+    #endif
+        findKeyButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
         
         addAndMakeVisible(playlistLengthSlider);
         addAndMakeVisible(applyLimitButton);
         addAndMakeVisible(findBPMButton);
+        addAndMakeVisible(findKeyButton);
         
         SetLabelText();
         addAndMakeVisible(currentLimitLabel);
@@ -78,6 +86,8 @@ public:
         applyLimitButton    .setBounds(totalBounds.removeFromTop(compHeight));
         totalBounds         .removeFromTop(compHeight/2);
         findBPMButton       .setBounds(totalBounds.removeFromTop(compHeight));
+        totalBounds         .removeFromTop(compHeight/2);
+        findKeyButton       .setBounds(totalBounds.removeFromTop(compHeight));
     }
     
     void changeListenerCallback (juce::ChangeBroadcaster* source) override
@@ -99,6 +109,7 @@ private:
     PlaylistTrackManagerComponent& trackManager;
     juce::Slider                   playlistLengthSlider;
     TextButtonWithClickOptions     findBPMButton;
+    TextButtonWithClickOptions     findKeyButton;
     juce::TextButton               applyLimitButton;
     juce::Label                    currentLimitLabel;
 };
