@@ -91,6 +91,7 @@ target_sources(APG
         source/Fonts.h
         source/FontsPoppins.cpp
         source/FontsPoppins.h
+        source/KeyDetector.h
         source/Main.cpp
         source/MainComponent.cpp
         source/MainComponent.h
