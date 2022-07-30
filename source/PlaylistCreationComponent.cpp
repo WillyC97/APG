@@ -31,9 +31,6 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     addPlaylistButton.onClick=[this](){ LaunchDialogBox(); createPlaylistSwitch = true; };
     addAndMakeVisible(addPlaylistButton);
     
-    #ifdef APG_TOUCH_UI
-        listBox.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
-    #endif
     listBox.setRowHeight(40);
     listBox.setModel(this);
     listBox.addMouseListener(this, true);
@@ -41,6 +38,10 @@ PlaylistCreationComponent::PlaylistCreationComponent()
     listBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xFF111212));
     listBox.getVerticalScrollBar().setColour( juce::ScrollBar::thumbColourId
                                             , juce::Colour(0xFFb8b8b8));
+#ifdef APG_TOUCH_UI
+    listBox.setRowHeight(50);
+    listBox.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
+#endif
     addAndMakeVisible(listBox);
 }
 //==============================================================================
