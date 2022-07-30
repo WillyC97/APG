@@ -18,9 +18,7 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
         lnf.setDefaultSansSerifTypeface(lnf.getTypefaceForFont(Fonts::GetFont(Fonts::Regular, 14.f)));
     #endif
 
-    #ifdef APG_TOUCH_UI
-        tableComponent.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
-    #endif
+
 
     tableComponent.getHeader().addColumn("No.",      1, 12);
     tableComponent.getHeader().addColumn("Title",    2, 300);
@@ -35,6 +33,10 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     tableComponent.setHeaderHeight(35);
     tableComponent.setRowHeight(52);
     tableComponent.setModel(this);
+#ifdef APG_TOUCH_UI
+    tableComponent.getViewport()->setScrollOnDragMode(juce::Viewport::ScrollOnDragMode::all);
+    tableComponent.setRowHeight(60);
+#endif
 
     tableComponent.getVerticalScrollBar()  .setColour( juce::ScrollBar::thumbColourId
                                                       , juce::Colour(0xFFb8b8b8));
@@ -574,6 +576,9 @@ void TableImageButtonCustomComponent::SetButtonImages( const bool resizeButtonNo
 void TableImageButtonCustomComponent::resized()
 {
     button.setBoundsInset(juce::BorderSize<int> (14));
+#ifdef APG_TOUCH_UI
+    button.setBoundsInset(juce::BorderSize<int> (10));
+#endif
 }
 void TableImageButtonCustomComponent::SetIsVisible(bool shouldBeVisible)
 {
