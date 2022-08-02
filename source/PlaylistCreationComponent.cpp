@@ -148,6 +148,7 @@ void PlaylistCreationComponent::CreatePlaylist(const juce::String& playlistName)
     juce::XmlElement playlist("APG");
     auto playlistNameElement = std::make_unique<juce::XmlElement>("PLAYLISTINFO");
     playlistNameElement->setAttribute("PlaylistName", playlistName);
+    playlistNameElement->setAttribute("PlaylistDurationLimit", 36000);
     auto data = std::make_unique<juce::XmlElement>("DATA");
     playlist.addChildElement(playlistNameElement.release());
     playlist.addChildElement(data.release());
