@@ -47,6 +47,8 @@ public:
         findBPMButton.onShiftClick=[this](){ trackManager.ExtractBPM(true);};
     #ifdef APG_TOUCH_UI
         findBPMButton.onLongPress=[this](){ trackManager.ExtractBPM(true);};
+    #else
+        findBPMButton.setTooltip("Shift click to Re-analyse");
     #endif
         findBPMButton.onClick=nullptr;
         findBPMButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
@@ -101,4 +103,5 @@ private:
     TextButtonWithClickOptions     findBPMButton;
     juce::TextButton               applyLimitButton;
     juce::Label                    currentLimitLabel;
+    juce::TooltipWindow            ttw {this};
 };
