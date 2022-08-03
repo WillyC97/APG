@@ -239,6 +239,8 @@ bool MainComponent::keyPressed(const juce::KeyPress& key, juce::Component* origi
         else
             audioPlayer.start();
     }
+
+    return true;
 }
 
 void MainComponent::PlayButtonClicked(const int &row)

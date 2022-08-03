@@ -79,6 +79,7 @@ public:
             setUsingNativeTitleBar (false);
             setTitleBarHeight (0);
             setFullScreen (true);
+            grabKeyboardFocus();
            #else
             setUsingNativeTitleBar (true);
            #endif
