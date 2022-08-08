@@ -103,5 +103,5 @@ private:
     TextButtonWithClickOptions     findBPMButton;
     juce::TextButton               applyLimitButton;
     juce::Label                    currentLimitLabel;
-    juce::TooltipWindow            ttw {this};
+    juce::TooltipWindow            ttw {this, 300};
 };

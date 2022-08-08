@@ -64,18 +64,21 @@ PlaylistTrackManagerComponent::PlaylistTrackManagerComponent(juce::AudioFormatMa
     searchBar.onTextChange = [this]
     {
         std::string textTyped = searchBar.getText().toLowerCase().toStdString();
-        for(auto* element : dataList->getChildWithTagNameIterator("TRACK"))
+        if(dataList)
         {
-            auto track = element->getStringAttribute("Title").toLowerCase().toStdString();
-            if(track.find(textTyped) != std::string::npos)
+            for(auto* element : dataList->getChildWithTagNameIterator("TRACK"))
             {
-                auto row = element->getStringAttribute("No.").getIntValue() - 1;
-                tableComponent.selectRow(row);
-                tableComponent.scrollToEnsureRowIsOnscreen(row);
+                auto track = element->getStringAttribute("Title").toLowerCase().toStdString();
+                if(track.find(textTyped) != std::string::npos)
+                {
+                    auto row = element->getStringAttribute("No.").getIntValue() - 1;
+                    tableComponent.selectRow(row);
+                    tableComponent.scrollToEnsureRowIsOnscreen(row);
+                }
             }
+            if(textTyped.empty())
+               tableComponent.deselectAllRows();
         }
-        if(textTyped.empty())
-           tableComponent.deselectAllRows();
     };
 
     playlistNameLabel.setText("Select a Playlist", juce::dontSendNotification);
