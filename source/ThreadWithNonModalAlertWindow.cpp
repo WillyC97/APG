@@ -47,7 +47,10 @@ void ThreadWithNonModalAlertWindow::SetProgress(const double newProgress)
 void ThreadWithNonModalAlertWindow::buttonClicked(juce::Button* button)
 {
     if (button->getName() == "Cancel")
+    {
+        threadComplete(true);
         alertWindow->setVisible(false);
+    }
 }
 //------------------------------------------------------------------------------
 
@@ -61,7 +64,7 @@ void ThreadWithNonModalAlertWindow::timerCallback()
         stopThread (10000);
         alertWindow->setVisible (false);
 
-        threadComplete(threadStillRunning);
+        threadComplete(isThreadRunning());
         return; // (this may be deleted now)
     }
     

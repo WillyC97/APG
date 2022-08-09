@@ -16,8 +16,11 @@ public:
     , trackList(trackListToUse)
     , shouldReanalyse(reanalyse)
     {
+        juce::String cancelWindowText = "Cancelling...";
         analysisFinishedWindow = std::make_unique<NonModalAlertWindow>();
+        cancellingWindow       = std::make_unique<NonModalAlertWindowWithProgressBar>("Cancelling", progress);
         parentToUse->addChildComponent(analysisFinishedWindow.get());
+        parentToUse->addChildComponent(cancellingWindow.get());
     }
 
     void run() override
@@ -48,20 +51,31 @@ public:
     // This method gets called on the message thread once our thread has finished..
     void threadComplete (bool userPressedCancel) override
     {
-        const juce::String messageString(userPressedCancel ? "Analysis Cancelled"
-                                                           : "Analysis Complete");
-        
-        analysisFinishedWindow->WithButton();
-        analysisFinishedWindow->SetWindowTitle(messageString);
-        analysisFinishedWindow->setVisible(true);
-        analysisFinishedWindow->resized();
+        if (userPressedCancel)
+        {
+            cancellingWindow->setVisible(true);
+            cancellingWindow->resized();
+        }
+        else
+        {
+            cancellingWindow->setVisible(false);
+            const juce::String messageString(userPressedCancel ? "Analysis Cancelled"
+                                                               : "Analysis Complete");
+            
+            analysisFinishedWindow->WithButton();
+            analysisFinishedWindow->SetWindowTitle(messageString);
+            analysisFinishedWindow->setVisible(true);
+            analysisFinishedWindow->resized();
+        }
     }
     
 private:
     juce::XmlElement* trackList;
     bool shouldReanalyse;
     BpmDetector bpmDetector;
+    double progress = -1.0;
     
+    std::unique_ptr<NonModalAlertWindowWithProgressBar> cancellingWindow;
     std::unique_ptr<NonModalAlertWindow> analysisFinishedWindow;
     
     float AnalyseBpm(const std::string& track)
