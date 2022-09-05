@@ -2,6 +2,10 @@
 
 #include <juce_gui_extra/juce_gui_extra.h>
 
+/// A component to show more detailed information on a track
+///
+/// Also used to edit the metadata of a track
+/// @see TagLibFileHandler
 class TrackInfoComponent
     : public juce::Component
 {
@@ -9,12 +13,13 @@ public:
     TrackInfoComponent(bool readOnly);
     
     void SetTrackToLoad(const juce::File& file);
-    void SetImageToShow(juce::Image& image);
     void resized() override;
     void AddButtonListener   (juce::Button::Listener* l) { backButton.addListener(l); }
     void RemoveButtonListener(juce::Button::Listener* l) { backButton.removeListener(l); }
     
 private:
+    void SetImageToShow(juce::Image& image);
+    
     juce::File       trackFile;
     juce::Label      artistNameLabel;
     juce::Label      trackNameLabel;

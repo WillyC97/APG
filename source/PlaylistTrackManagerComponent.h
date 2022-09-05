@@ -8,6 +8,12 @@
 #include "SidePanelWithBrowser.h"
 #include "TrackInfoComponent.h"
 
+///Manages each track within the playlist
+///
+///This component can be considered the main component for the application.
+///It manages inserting new tracks, removing tracks from playllists and assigning track IDs
+///for use with the AudioPlayer.
+///It also triggers the audio analysis
 class PlaylistTrackManagerComponent
     : public juce::Component
     , public juce::TableListBoxModel
@@ -20,23 +26,16 @@ public:
     //==============================================================================
     class Listener;
     //==============================================================================
-   /** fills the component's background and draws text */
     void paint(juce::Graphics&) override;
-
-    /** set bounds of child components */
     void resized() override;
-
-    /** get number of rows in playlist */
     int getNumRows() override;
 
-    /** fills row background */
     void paintRowBackground( juce::Graphics&
                            , int rowNumber
                            , int width
                            , int height
                            , bool rowIsSelected) override;
 
-    /** fills row with text and colour */
     void paintCell( juce::Graphics&
                   , int rowNumber
                   , int columnId
@@ -44,7 +43,6 @@ public:
                   , int height
                   , bool rowIsSelected) override;
 
-    /** updates cell component */
     Component* refreshComponentForCell( int rowNumber
                                       , int columnId
                                       , bool isRowSelected
@@ -63,11 +61,9 @@ public:
 //    /** triggers when a different row is selected */
 //    void selectedRowsChanged(int lastRowSelected) override;
     
-    /** triggers when button clicked */
     void buttonClicked(juce::Button* button) override;
     //==============================================================================
 
-    /** insert track data into respective vectors */
     void insertTracks(juce::File& audioFile);
     
     juce::XmlElement* GetTrack(int index);
@@ -135,6 +131,7 @@ private:
 };
 
 //==============================================================================
+/// An image button that is added to each row as a component
 class TableImageButtonCustomComponent
     : public juce::Component
 {
@@ -168,6 +165,7 @@ private:
 };
 
 //==============================================================================
+/// Sorts the data within the playlist
 class PlaylistTrackManagerComponent::PlaylistDataSorter
 {
 public:
@@ -181,11 +179,15 @@ private:
 };
 
 //==============================================================================
+/// Listener interface for the PlaylistTrackManagerComponent
+///
+/// @see PlaylistTrackManagerComponent
 class PlaylistTrackManagerComponent::Listener
 {
 public:
     virtual ~Listener() = default;
     
+    ///Triggered when the row play button has been clicked.
     virtual void PlayButtonClicked(const int& row) = 0;
 };
 

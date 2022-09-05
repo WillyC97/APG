@@ -4,6 +4,7 @@
 #include "AudioPlayer.h"
 #include "AudioThumbnailComp.h"
 
+/// Class that allows a songs waveform to be displayed.
 class WaveformView
     : public juce::Component
 {

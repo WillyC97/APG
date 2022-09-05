@@ -5,6 +5,7 @@
 #include "NonModalAlertWindow.h"
 #include "TrackInfoComponent.h"
 
+///Displays album artwork in an ImageButton
 class AlbumArtworkDisplayer
     : public juce::Component
     , public juce::Button::Listener
@@ -12,6 +13,11 @@ class AlbumArtworkDisplayer
 public:
     AlbumArtworkDisplayer();
 
+    /** Set the track with which to extract the album artwork
+     
+        If no artwork is present, it will show the default artwork image
+        @param track - The track to extract the artwork from
+    */
     void SetTrackToLoad(const juce::XmlElement* track);
     
 private:

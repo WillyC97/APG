@@ -2,6 +2,7 @@
 
 #include <juce_gui_extra/juce_gui_extra.h>
 
+/// A component that holds a juce::FileBrowser and a juce::TextButton
 class BrowserWithButton
     : public juce::Component
 {
@@ -72,7 +73,10 @@ private:
     std::unique_ptr<juce::FileBrowserComponent> browser;
     juce::TextButton                            addButton;
 };
-
+//==============================================================================
+/// A juce side panel where the owned component is a BrowserWithButton
+///
+/// @see BrowserWithButton
 class SidePanelWithBrowser
     : public juce::SidePanel
 {
@@ -85,6 +89,8 @@ public:
         setContent(browserWithButton.release());
     }
     
+    ///Iterates through the number of selected files and
+    ///returns them in a juce::Array
     juce::Array<juce::File> GetFiles()
     {
         juce::Array<juce::File> files;

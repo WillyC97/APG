@@ -13,7 +13,10 @@ namespace
     constexpr auto MinPlaylistLenMins = 0.0f;
 }
 //==============================================================================
-
+/// A component that manages playlist settings
+///
+/// Requires a PlaylistTrackManager component for getting and setting playlist limits, as well as
+/// triggering the analysis of the playlist
 class PlaylistSettingsComponent
     : public juce::Component
     , public juce::ChangeListener

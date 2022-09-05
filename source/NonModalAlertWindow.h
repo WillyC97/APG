@@ -10,6 +10,7 @@ namespace
     constexpr auto padding      = 6;
 }
 //==============================================================================
+/// A window that can be shown on top of the UI that is not run in a modal loop
 class NonModalAlertWindow
     : public juce::Component
     , private juce::ComponentListener
@@ -42,6 +43,9 @@ private:
 };
 
 //==============================================================================
+/// A NonModalAlertWindow with okay and cancel buttons
+///
+/// @see NonModalAlertWindow
 class NonModalAlertWindowOkCancel
     : public NonModalAlertWindow
 {
@@ -61,6 +65,9 @@ private:
 };
 
 //==============================================================================
+/// A NonModalAlertWindow with a progress bar
+///
+/// @see NonModalAlertWindow
 class NonModalAlertWindowWithProgressBar
 : public NonModalAlertWindow
 {

@@ -4,6 +4,9 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
 
+/// A slider that updates based on the current position of the audio
+///
+/// Can also be used to set the current audio position
 class TransportSlider
     : public juce::Component
     , public juce::Timer
@@ -89,6 +92,7 @@ private:
         timeRemainingLabel.setText(SecondsToMinutes(transportSource.getTransportPosition()), juce::NotificationType::dontSendNotification);
     }
     //==============================================================================
+    ///Converts the current slider position to a time in seconds relative to the track length
     double XToTime(const float x) const
     {
         return (x / slider.getWidth()) * transportSource.GetLengthInSeconds();

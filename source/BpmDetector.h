@@ -26,9 +26,16 @@ using namespace essentia;
 using namespace essentia::streaming;
 using namespace essentia::scheduler;
 
+/// Dectects the BPM of a track
+///
+/// Makes use of the Essentia RythmExtractor algorithm
 class BpmDetector
 {
 public :
+    /// Method used to extract the BPM
+    ///
+    /// @param audioFileName - the name of track to analyse
+    /// @returns The extracted BPM value
     float CalculateBpm(const std::string& audioFilename)
     {
         // register the algorithms in the factory(ies)

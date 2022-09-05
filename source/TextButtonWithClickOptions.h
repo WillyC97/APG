@@ -3,11 +3,14 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 
 /// A TextButton that can perform different functions onlong press and shift click
+///
+/// @see onSingleClick, onShiftClick, onLongPress
 class TextButtonWithClickOptions
 : public juce::TextButton
 , private juce::Timer
 {
 public:
+    /** You can assign a lambda to these callback objects to have it called when the button is clicked. */
     std::function<void()> onSingleClick;
     std::function<void()> onShiftClick;
     std::function<void()> onLongPress;
