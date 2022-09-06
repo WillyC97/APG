@@ -5,6 +5,11 @@
 
 #include "NonModalAlertWindow.h"
 
+/// A component that manages playlists
+///
+/// Populates a listbox with the available playlists
+/// Clicking a playlists triggers a change message for all listeners
+/// Can create, update and delete playlists
 class PlaylistCreationComponent
     : public juce::Component
     , public juce::ListBoxModel
@@ -14,14 +19,18 @@ class PlaylistCreationComponent
 public:
     PlaylistCreationComponent();
     
+    //juce::Component
     void paint(juce::Graphics& g) override;
     void resized() override;
     
+    //juce::ListBoxModel
     int getNumRows() override;
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged(int lastRowSelected) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
     void listBoxItemDoubleClicked (int row, const juce::MouseEvent&) override;
+    
+    //juce::Button::Listener
     void buttonClicked(juce::Button* button) override;
     
     juce::File& GetPlaylist();

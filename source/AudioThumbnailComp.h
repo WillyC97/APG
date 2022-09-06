@@ -4,6 +4,13 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AudioPlayer.h"
 
+/// A component to draw the waveform of audio
+///
+/// Can also be used to adjust the transport position of the current playing audiofile
+/// @param formatManager - The format manager to use
+/// @param transportSource - The audio with which to follow
+/// @param thumbCache - The AudioThumbnailCache to use
+/// @param existingFile - The audio file to draw. Can also be set with SetFile()
 class AudioThumbnailComp
     : public  juce::Component
     , public  juce::ChangeListener
@@ -29,10 +36,13 @@ public:
     void SetFollowsTransport(bool shouldFollow);
 
 //==============================================================================
+    //juce::Component
     void paint(juce::Graphics& g) override;
 
+    //juce::ChangeListener
     void changeListenerCallback(juce::ChangeBroadcaster*) override;
 //==============================================================================
+    //juce::Component
     void mouseDown(const juce::MouseEvent& e) override;
     void mouseDrag(const juce::MouseEvent& e) override;
     void mouseUp(const juce::MouseEvent&) override;
@@ -51,13 +61,16 @@ private:
     
     bool isFollowingTransport;
     bool shouldPaintAsHighlighted = false;
-
+    
+    /// Convert the current time of the track to an X position on the transport bar
     float TimeToX(const double time) const;
+    /// Convert the current X position on the transport bar to a time value of a track
     double XToTime(const float x) const;
 
     bool CanMoveTransport() const noexcept;
     
     void UpdateCursorPosition();
 
+    //juce::Timer
     void timerCallback() override;
 };

@@ -1,9 +1,5 @@
 #pragma once
 
-// CMake builds don't use an AppConfig.h, so it's safe to include juce module headers
-// directly. If you need to remain compatible with Projucer-generated builds, and
-// have called `juce_generate_juce_header(<thisTarget>)` in your CMakeLists.txt,
-// you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "AlbumArtworkDisplayer.h"
 #include "AudioPlayer.h"
@@ -15,10 +11,10 @@
 #include "WaveformView.h"
 
 //==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+/// The MainComponent Class
+///
+/// Holds all the other components that make up the application.
+/// Also handles the play functionality.
 class MainComponent
     : public juce::AudioAppComponent
     , public juce::Timer
@@ -33,19 +29,22 @@ public:
     ~MainComponent() override;
     
     //==============================================================================
+    //juce::AudioAppComponent
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
     //==============================================================================
+    //juce::Component
     void paint (juce::Graphics&) override;
     void resized() override;
     
+    //juce::Timer
     void timerCallback() override;
+    //juce::KeyListener
     bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
     
 private:
     //==============================================================================
-    // Your private member variables go here...
     juce::Array<juce::File> getFiles();
     
     void TransportStateChanged(const TransportState& state) override;

@@ -3,6 +3,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <atomic>
 
+///Class for processing audio
 class AudioPlayer
     : public juce::AudioSource
     , public juce::ChangeListener
@@ -22,18 +23,14 @@ public:
     void load(const juce::File& audioFile);
     
     //juce::AudioSource
-    /** receives audio data in preparation of play */
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-
-    /** get the following audio buffer block */
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
-
-    /** allows the source to release anything it no longer needs after playback has stopped */
     void releaseResources() override;
     
     void AddListener   (Listener &l);
     void RemoveListener(Listener &l);
     
+    //juce::ChangeListener
     void changeListenerCallback (juce::ChangeBroadcaster* source) override;
     
     std::atomic<bool> streamFinished;
@@ -47,6 +44,7 @@ private:
 };
 
 //=============================================================================
+/// Enum class for the various states of the audio
 enum class TransportState
 {
     Stopped,
@@ -56,10 +54,14 @@ enum class TransportState
 };
 
 //=============================================================================
+/// Listener interface for the AudioPlayer class
+///
+/// @see AudioPlayer
 class AudioPlayer::Listener
 {
 public:
     virtual ~Listener() = default;
-        
+    
+    /// Called when the state of the audio changes
     virtual void TransportStateChanged(const TransportState& state) = 0;
 };
